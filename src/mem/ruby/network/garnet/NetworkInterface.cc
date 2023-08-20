@@ -53,7 +53,7 @@ namespace garnet
 
 NetworkInterface::NetworkInterface(const Params &p)
   : ClockedObject(p), Consumer(this), m_id(p.id),
-    m_virtual_networks(p.virt_nets), m_vc_per_vnet(0),
+    m_virtual_networks(p.virt_nets), m_vc_per_vnet(0), m_wormhole(p.wormhole),
     m_vc_allocator(m_virtual_networks, 0),
     m_deadlock_threshold(p.garnet_deadlock_threshold),
     vc_busy_counter(m_virtual_networks, 0)
@@ -449,8 +449,10 @@ NetworkInterface::flitisizeMessage(MsgPtr msg_ptr, int vnet)
             niOutVcs[vc].insert(fl);
         }
 
-        m_ni_out_vcs_enqueue_time[vc] = curTick();
-        outVcState[vc].setState(ACTIVE_, curTick());
+        if (outVcState[vc].isInState(IDLE_, curTick())) {
+            m_ni_out_vcs_enqueue_time[vc] = curTick();
+            outVcState[vc].setState(ACTIVE_, curTick());
+        }
     }
     return true ;
 }
@@ -464,9 +466,14 @@ NetworkInterface::calculateVC(int vnet)
         m_vc_allocator[vnet]++;
         if (m_vc_allocator[vnet] == m_vc_per_vnet)
             m_vc_allocator[vnet] = 0;
-
+            
         if (outVcState[(vnet*m_vc_per_vnet) + delta].isInState(
                     IDLE_, curTick())) {
+            vc_busy_counter[vnet] = 0;
+            return ((vnet*m_vc_per_vnet) + delta);
+        }
+        else if (m_wormhole &&
+                outVcState[(vnet*m_vc_per_vnet) + delta].has_credit()) {
             vc_busy_counter[vnet] = 0;
             return ((vnet*m_vc_per_vnet) + delta);
         }

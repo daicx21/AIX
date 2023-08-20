@@ -190,6 +190,8 @@ RoutingUnit::outportCompute(RouteInfo route, int inport,
             lookupRoutingTable(route.vnet, route.net_dest); break;
         case XY_:     outport =
             outportComputeXY(route, inport, inport_dirn); break;
+        case RING_:     outport =
+            outportComputeRing(route, inport, inport_dirn); break;
         // any custom algorithm
         case CUSTOM_: outport =
             outportComputeCustom(route, inport, inport_dirn); break;
@@ -255,6 +257,45 @@ RoutingUnit::outportComputeXY(RouteInfo route,
         // this is not possible
         // already checked that in outportCompute() function
         panic("x_hops == y_hops == 0");
+    }
+
+    return m_outports_dirn2idx[outport_dirn];
+}
+
+// Greedy routing implemented using port directions
+// Only for reference purpose in a Ring
+// By default Garnet uses the routing table
+int
+RoutingUnit::outportComputeRing(RouteInfo route,
+                              int inport,
+                              PortDirection inport_dirn)
+{
+    PortDirection outport_dirn = "Unknown";
+    
+    int num_routers = m_router->get_net_ptr()->getNumRouters();
+    assert(num_routers > 0);
+
+    int my_id = m_router->get_id();
+
+    int dest_id = route.dest_router;
+
+    // already checked that in outportCompute() function
+    assert(my_id != dest_id);
+
+    int east_hops = (dest_id - my_id + num_routers) % num_routers;
+    int west_hops = (my_id - dest_id + num_routers) % num_routers;
+
+    if (east_hops == west_hops) {
+        if (rand() % 2 == 0) {
+            outport_dirn = "East";
+        }
+        else {
+            outport_dirn = "West";
+        }
+    } else if (east_hops < west_hops) {
+        outport_dirn = "East";
+    } else {
+        outport_dirn = "West";
     }
 
     return m_outports_dirn2idx[outport_dirn];

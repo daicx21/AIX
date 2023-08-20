@@ -71,6 +71,10 @@ class GarnetNetwork : public Network
 
     // Configuration (set externally)
 
+    // for 1D topology
+
+    int getNumRouters() const { return m_num_cpus; }
+
     // for 2D topology
     int getNumRows() const { return m_num_rows; }
     int getNumCols() { return m_num_cols; }
@@ -161,6 +165,8 @@ class GarnetNetwork : public Network
     // Configuration
     int m_num_rows;
     int m_num_cols;
+    int m_num_cpus;
+    int m_sim_cycles;
     uint32_t m_ni_flit_size;
     uint32_t m_max_vcs_per_vnet;
     uint32_t m_buffers_per_ctrl_vc;
@@ -199,6 +205,9 @@ class GarnetNetwork : public Network
 
     statistics::Scalar  m_total_hops;
     statistics::Formula m_avg_hops;
+
+    statistics::Formula m_reception_rate;
+    statistics::Formula m_avg_packet_throughput;
 
     std::vector<std::vector<statistics::Scalar *>> m_data_traffic_distribution;
     std::vector<std::vector<statistics::Scalar *>> m_ctrl_traffic_distribution;

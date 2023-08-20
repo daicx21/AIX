@@ -52,6 +52,7 @@ SwitchAllocator::SwitchAllocator(Router *router)
     m_router = router;
     m_num_vcs = m_router->get_num_vcs();
     m_vc_per_vnet = m_router->get_vc_per_vnet();
+    m_wormhole = m_router->get_wormhole();
 
     m_input_arbiter_activity = 0;
     m_output_arbiter_activity = 0;
@@ -113,6 +114,11 @@ SwitchAllocator::arbitrate_inports()
     // Select a VC from each input in a round robin manner
     // Independent arbiter at each input port
     for (int inport = 0; inport < m_num_inports; inport++) {
+        if (m_wormhole) {
+            
+            m_port_requests[inport] = -1;
+        }
+
         int invc = m_round_robin_invc[inport];
 
         for (int invc_iter = 0; invc_iter < m_num_vcs; invc_iter++) {
@@ -221,7 +227,23 @@ SwitchAllocator::arbitrate_outports()
                 m_router->grant_switch(inport, t_flit);
                 m_output_arbiter_activity++;
 
-                if ((t_flit->get_type() == TAIL_) ||
+                if (m_wormhole) {
+                    
+                    assert(t_flit->get_type() == HEAD_TAIL_);
+                    if (input_unit->isEmpty(invc)) {
+
+                        input_unit->set_vc_idle(invc, curTick());
+                        input_unit->increment_credit(invc, true, curTick());
+                    }
+                    else {
+
+                        flit *next_flit = input_unit->peekTopFlit(invc);
+                        input_unit->grant_outport(invc, next_flit->get_outport());
+                        input_unit->grant_outvc(invc, -1);
+                        input_unit->increment_credit(invc, false, curTick());
+                    }
+                }
+                else if ((t_flit->get_type() == TAIL_) ||
                     t_flit->get_type() == HEAD_TAIL_) {
 
                     // This Input VC should now be empty
@@ -345,7 +367,7 @@ SwitchAllocator::vc_allocate(int outport, int inport, int invc)
     int outvc =
         m_router->getOutputUnit(outport)->select_free_vc(get_vnet(invc));
 
-    // has to get a valid VC since it checked before performing SA
+    // has to get a valid VC since it checkd before performing SA
     assert(outvc != -1);
     m_router->getInputUnit(inport)->grant_outvc(invc, outvc);
     return outvc;

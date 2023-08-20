@@ -126,6 +126,12 @@ class InputUnit : public Consumer
     }
 
     inline bool
+    isEmpty(int invc)
+    {
+        return virtualChannels[invc].isEmpty();
+    }
+
+    inline bool
     isReady(int invc, Tick curTime)
     {
         return virtualChannels[invc].isReady(curTime);
@@ -162,6 +168,7 @@ class InputUnit : public Consumer
     int m_id;
     PortDirection m_direction;
     int m_vc_per_vnet;
+    bool m_wormhole;
     NetworkLink *m_in_link;
     CreditLink *m_credit_link;
     flitBuffer creditQueue;

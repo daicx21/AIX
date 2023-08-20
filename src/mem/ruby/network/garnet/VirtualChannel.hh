@@ -65,6 +65,12 @@ class VirtualChannel
     inline VC_state_type get_state()        { return m_vc_state.first; }
 
     inline bool
+    isEmpty()
+    {
+        return inputBuffer.isEmpty();
+    }
+
+    inline bool
     isReady(Tick curTime)
     {
         return inputBuffer.isReady(curTime);

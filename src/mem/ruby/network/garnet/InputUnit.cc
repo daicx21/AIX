@@ -46,7 +46,7 @@ namespace garnet
 
 InputUnit::InputUnit(int id, PortDirection direction, Router *router)
   : Consumer(router), m_router(router), m_id(id), m_direction(direction),
-    m_vc_per_vnet(m_router->get_vc_per_vnet())
+    m_vc_per_vnet(m_router->get_vc_per_vnet()), m_wormhole(m_router->get_wormhole())
 {
     const int m_num_vcs = m_router->get_num_vcs();
     m_num_buffer_reads.resize(m_num_vcs/m_vc_per_vnet);
@@ -87,7 +87,31 @@ InputUnit::wakeup()
         int vc = t_flit->get_vc();
         t_flit->increment_hops(); // for stats
 
-        if ((t_flit->get_type() == HEAD_) ||
+        if (m_wormhole) {
+
+            assert(t_flit->get_type() == HEAD_TAIL_);
+
+            bool is_empty = virtualChannels[vc].isEmpty();
+            if (is_empty) {
+
+                set_vc_active(vc, curTick());
+            }
+
+            // Route computation for this vc
+            int outport = m_router->route_compute(t_flit->get_route(),
+                m_id, m_direction);
+            t_flit->set_outport(outport);
+
+            // Update output port in VC
+            // All flits in this packet will use this output port
+            // The output port field in the flit is updated after it wins SA
+            if (is_empty) {
+                
+                grant_outport(vc, outport);
+            }
+            
+        }
+        else if ((t_flit->get_type() == HEAD_) ||
             (t_flit->get_type() == HEAD_TAIL_)) {
 
             assert(virtualChannels[vc].get_state() == IDLE_);

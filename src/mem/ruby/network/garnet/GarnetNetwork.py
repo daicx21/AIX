@@ -48,6 +48,10 @@ class GarnetNetwork(RubyNetwork):
     routing_algorithm = Param.Int(0, "0: Weight-based Table, 1: XY, 2: Custom")
     enable_fault_model = Param.Bool(False, "enable network fault model")
     fault_model = Param.FaultModel(NULL, "network fault model")
+    sim_cycles = Param.Int(1000, "Number of simulation cycles")
+    num_cpus = Param.Int(0, "Number of simulation cpus")
+    wormhole = Param.Bool(False, "wormhole flow control")
+
     garnet_deadlock_threshold = Param.UInt32(
         50000, "network-level deadlock threshold"
     )
@@ -64,6 +68,9 @@ class GarnetNetworkInterface(ClockedObject):
     )
     virt_nets = Param.UInt32(
         Parent.number_of_virtual_networks, "number of virtual networks"
+    )
+    wormhole = Param.Bool(
+        Parent.wormhole, "wormhole flow control"
     )
     garnet_deadlock_threshold = Param.UInt32(
         Parent.garnet_deadlock_threshold, "network-level deadlock threshold"
@@ -82,4 +89,7 @@ class GarnetRouter(BasicRouter):
     )
     width = Param.UInt32(
         Parent.ni_flit_size, "bit width supported by the router"
+    )
+    wormhole = Param.Bool(
+        Parent.wormhole, "wormhole flow control"
     )

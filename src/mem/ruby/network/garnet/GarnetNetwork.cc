@@ -71,6 +71,8 @@ GarnetNetwork::GarnetNetwork(const Params &p)
     m_buffers_per_ctrl_vc = p.buffers_per_ctrl_vc;
     m_routing_algorithm = p.routing_algorithm;
     m_next_packet_id = 0;
+    m_num_cpus = p.num_cpus;
+    m_sim_cycles = p.sim_cycles;
 
     m_enable_fault_model = p.enable_fault_model;
     if (m_enable_fault_model)
@@ -392,6 +394,7 @@ GarnetNetwork::regStats()
         .name(name() + ".packets_received")
         .flags(statistics::pdf | statistics::total | statistics::nozero |
             statistics::oneline)
+        .unit(statistics::units::Count::get())
         ;
 
     m_packets_injected
@@ -399,6 +402,7 @@ GarnetNetwork::regStats()
         .name(name() + ".packets_injected")
         .flags(statistics::pdf | statistics::total | statistics::nozero |
             statistics::oneline)
+        .unit(statistics::units::Count::get())
         ;
 
     m_packet_network_latency
@@ -433,19 +437,34 @@ GarnetNetwork::regStats()
         m_packet_queueing_latency / m_packets_received;
 
     m_avg_packet_network_latency
-        .name(name() + ".average_packet_network_latency");
+        .name(name() + ".average_packet_network_latency")
+        .unit(statistics::units::Cycle::get());
     m_avg_packet_network_latency =
         sum(m_packet_network_latency) / sum(m_packets_received);
 
     m_avg_packet_queueing_latency
-        .name(name() + ".average_packet_queueing_latency");
+        .name(name() + ".average_packet_queueing_latency")
+        .unit(statistics::units::Cycle::get());
     m_avg_packet_queueing_latency
         = sum(m_packet_queueing_latency) / sum(m_packets_received);
 
     m_avg_packet_latency
-        .name(name() + ".average_packet_latency");
+        .name(name() + ".average_packet_latency")
+        .unit(statistics::units::Cycle::get());
     m_avg_packet_latency
         = m_avg_packet_network_latency + m_avg_packet_queueing_latency;
+
+    m_reception_rate
+        .name(name() + ".reception_rate")
+        .unit(statistics::units::Ratio::get());
+    m_reception_rate
+        = sum(m_packets_received) / m_num_cpus / m_sim_cycles;
+
+    m_avg_packet_throughput
+        .name(name() + ".average_packet_throughput")
+        .unit(statistics::units::Count::get());
+    m_avg_packet_throughput
+        = sum(m_packets_received) / m_sim_cycles;
 
     // Flits
     m_flits_received
@@ -507,9 +526,10 @@ GarnetNetwork::regStats()
     m_avg_flit_latency =
         m_avg_flit_network_latency + m_avg_flit_queueing_latency;
 
-
     // Hops
-    m_avg_hops.name(name() + ".average_hops");
+    m_avg_hops
+        .name(name() + ".average_hops")
+        .unit(statistics::units::Count::get());
     m_avg_hops = m_total_hops / sum(m_flits_received);
 
     // Links

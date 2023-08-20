@@ -49,7 +49,7 @@ namespace garnet
 OutputUnit::OutputUnit(int id, PortDirection direction, Router *router,
   uint32_t consumerVcs)
   : Consumer(router), m_router(router), m_id(id), m_direction(direction),
-    m_vc_per_vnet(consumerVcs)
+    m_vc_per_vnet(consumerVcs), m_wormhole(m_router->get_wormhole())
 {
     const int m_num_vcs = consumerVcs * m_router->get_num_vnets();
     outVcState.reserve(m_num_vcs);
@@ -103,6 +103,14 @@ OutputUnit::has_free_vc(int vnet)
             return true;
     }
 
+    if (m_wormhole) {
+        for (int vc = vc_base; vc < vc_base + m_vc_per_vnet; vc++) {
+            if (has_credit(vc)) {
+                return true;
+            }
+        }
+    }
+
     return false;
 }
 
@@ -115,6 +123,14 @@ OutputUnit::select_free_vc(int vnet)
         if (is_vc_idle(vc, curTick())) {
             outVcState[vc].setState(ACTIVE_, curTick());
             return vc;
+        }
+    }
+
+    if (m_wormhole) {
+        for (int vc = vc_base; vc < vc_base + m_vc_per_vnet; vc++) {
+            if (has_credit(vc)) {
+                return vc;
+            }
         }
     }
 

@@ -88,6 +88,22 @@ def define_options(parser):
             inside garnet network.""",
     )
     parser.add_argument(
+        "--buffers-per-data-vc",
+        action="store",
+        type=int,
+        default=4,
+        help="""depth per virtual network per data virtual channel
+            inside garnet network.""",
+    )
+    parser.add_argument(
+        "--buffers-per-ctrl-vc",
+        action="store",
+        type=int,
+        default=1,
+        help="""depth per virtual network per ctrl virtual channel
+            inside garnet network.""",
+    )
+    parser.add_argument(
         "--routing-algorithm",
         action="store",
         type=int,
@@ -117,6 +133,12 @@ def define_options(parser):
         default=False,
         help="""SimpleNetwork links uses a separate physical
             channel for each virtual network""",
+    )
+    parser.add_argument(
+        "--wormhole",
+        action="store_true",
+        default=False,
+        help="wormhole flow control.",
     )
 
 
@@ -166,9 +188,14 @@ def init_network(options, network, InterfaceClass):
     if options.network == "garnet":
         network.num_rows = options.mesh_rows
         network.vcs_per_vnet = options.vcs_per_vnet
+        network.buffers_per_data_vc = options.buffers_per_data_vc
+        network.buffers_per_ctrl_vc = options.buffers_per_ctrl_vc
         network.ni_flit_size = options.link_width_bits / 8
         network.routing_algorithm = options.routing_algorithm
         network.garnet_deadlock_threshold = options.garnet_deadlock_threshold
+        network.num_cpus = options.num_cpus
+        network.sim_cycles = options.sim_cycles
+        network.wormhole = options.wormhole
 
         # Create Bridges and connect them to the corresponding links
         for intLink in network.int_links:
