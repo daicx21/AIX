@@ -1,0 +1,7 @@
+
+packets_injected = 5                       (Unspecified)
+packets_received = 2                       (Unspecified)
+average_packet_queueing_latency = 1000                       (Unspecified)
+average_packet_network_latency = 3000                       (Unspecified)
+average_packet_latency = 4000                       (Unspecified)
+average_hops = 1.500000                       (Unspecified)
