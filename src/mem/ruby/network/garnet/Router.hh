@@ -113,6 +113,7 @@ class Router : public BasicRouter, public Consumer
     }
 
     int getBitWidth() { return m_bit_width; }
+    int getDimension() { return m_dimension; }
 
     PortDirection getOutportDirection(int outport);
     PortDirection getInportDirection(int inport);
@@ -146,7 +147,7 @@ class Router : public BasicRouter, public Consumer
   private:
     Cycles m_latency;
     uint32_t m_virtual_networks, m_vc_per_vnet, m_num_vcs;
-    uint32_t m_bit_width;
+    uint32_t m_bit_width, m_dimension;
     bool m_wormhole;
     GarnetNetwork *m_network_ptr;
 

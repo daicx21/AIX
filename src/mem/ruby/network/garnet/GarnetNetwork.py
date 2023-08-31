@@ -51,6 +51,7 @@ class GarnetNetwork(RubyNetwork):
     sim_cycles = Param.Int(1000, "Number of simulation cycles")
     num_cpus = Param.Int(0, "Number of simulation cpus")
     wormhole = Param.Bool(False, "wormhole flow control")
+    sim_cycles = Param.Int(1, "dimension of cube")
 
     garnet_deadlock_threshold = Param.UInt32(
         50000, "network-level deadlock threshold"
@@ -93,3 +94,7 @@ class GarnetRouter(BasicRouter):
     wormhole = Param.Bool(
         Parent.wormhole, "wormhole flow control"
     )
+    dimension = Param.Int(
+        Parent.dimension, "dimension of cube"
+    )
+

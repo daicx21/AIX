@@ -140,6 +140,13 @@ def define_options(parser):
         default=False,
         help="wormhole flow control.",
     )
+    parser.add_argument(
+        "--dimension",
+        action="store",
+        type=int,
+        default=1,
+        help="Dimension of cube.",
+    )
 
 
 def create_network(options, ruby):
@@ -196,6 +203,7 @@ def init_network(options, network, InterfaceClass):
         network.num_cpus = options.num_cpus
         network.sim_cycles = options.sim_cycles
         network.wormhole = options.wormhole
+        network.dimension = options.dimension
 
         # Create Bridges and connect them to the corresponding links
         for intLink in network.int_links:
