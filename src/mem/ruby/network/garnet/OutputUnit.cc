@@ -95,17 +95,17 @@ OutputUnit::has_credit(int out_vc)
 
 // Check if the output port (i.e., input port at next router) has free VCs.
 bool
-OutputUnit::has_free_vc(int vnet)
+OutputUnit::has_free_vc(int vnet, int label)
 {
     int vc_base = vnet*m_vc_per_vnet;
     for (int vc = vc_base; vc < vc_base + m_vc_per_vnet; vc++) {
-        if (is_vc_idle(vc, curTick()))
+        if (is_vc_idle(vc, curTick()) && isMatch(vc, label))
             return true;
     }
 
     if (m_wormhole) {
         for (int vc = vc_base; vc < vc_base + m_vc_per_vnet; vc++) {
-            if (has_credit(vc)) {
+            if (has_credit(vc) && isMatch(vc, label)) {
                 return true;
             }
         }
@@ -116,11 +116,11 @@ OutputUnit::has_free_vc(int vnet)
 
 // Assign a free output VC to the winner of Switch Allocation
 int
-OutputUnit::select_free_vc(int vnet)
+OutputUnit::select_free_vc(int vnet, int label)
 {
     int vc_base = vnet*m_vc_per_vnet;
     for (int vc = vc_base; vc < vc_base + m_vc_per_vnet; vc++) {
-        if (is_vc_idle(vc, curTick())) {
+        if (is_vc_idle(vc, curTick()) && isMatch(vc, label)) {
             outVcState[vc].setState(ACTIVE_, curTick());
             return vc;
         }
@@ -128,13 +128,25 @@ OutputUnit::select_free_vc(int vnet)
 
     if (m_wormhole) {
         for (int vc = vc_base; vc < vc_base + m_vc_per_vnet; vc++) {
-            if (has_credit(vc)) {
+            if (has_credit(vc) && isMatch(vc, label)) {
                 return vc;
             }
         }
     }
 
     return -1;
+}
+
+bool 
+OutputUnit::isMatch(int out_vc, int label)
+{
+    if (label != -1) {
+        int block = (m_vc_per_vnet / 3);
+        return label == ((out_vc % m_vc_per_vnet) / block);
+    }
+    else {
+        return true;
+    }
 }
 
 /*

@@ -165,18 +165,18 @@ RoutingUnit::addOutDirection(PortDirection outport_dirn, int outport_idx)
 // implementations using port directions rather than a static routing
 // table is provided here.
 
-int
+std::pair<int,int>
 RoutingUnit::outportCompute(RouteInfo route, int inport,
                             PortDirection inport_dirn)
 {
-    int outport = -1;
+    std::pair<int,int> outport = std::make_pair(-1, -1);
 
     if (route.dest_router == m_router->get_id()) {
 
         // Multiple NIs may be connected to this router,
         // all with output port direction = "Local"
         // Get exact outport id from table
-        outport = lookupRoutingTable(route.vnet, route.net_dest);
+        outport = std::make_pair(lookupRoutingTable(route.vnet, route.net_dest), -1);
         return outport;
     }
 
@@ -187,21 +187,21 @@ RoutingUnit::outportCompute(RouteInfo route, int inport,
 
     switch (routing_algorithm) {
         case TABLE_:  outport =
-            lookupRoutingTable(route.vnet, route.net_dest); break;
+            std::make_pair(lookupRoutingTable(route.vnet, route.net_dest), -1); break;
         case XY_:     outport =
-            outportComputeXY(route, inport, inport_dirn); break;
+            std::make_pair(outportComputeXY(route, inport, inport_dirn), -1); break;
         case RING_:     outport =
-            outportComputeRing(route, inport, inport_dirn); break;
+            std::make_pair(outportComputeRing(route, inport, inport_dirn), -1); break;
         case CUBE_:     outport =
             outportComputeCube(route, inport, inport_dirn); break;
         // any custom algorithm
         case CUSTOM_: outport =
-            outportComputeCustom(route, inport, inport_dirn); break;
+            std::make_pair(outportComputeCustom(route, inport, inport_dirn), -1); break;
         default: outport =
-            lookupRoutingTable(route.vnet, route.net_dest); break;
+            std::make_pair(lookupRoutingTable(route.vnet, route.net_dest), -1); break;
     }
 
-    assert(outport != -1);
+    assert(outport != std::make_pair(-1, -1));
     return outport;
 }
 
@@ -306,7 +306,7 @@ RoutingUnit::outportComputeRing(RouteInfo route,
 // Custom routing algorithm
 // Only for reference purpose in a Cube
 // By default Garnet uses the routing table
-int
+std::pair<int,int>
 RoutingUnit::outportComputeCube(RouteInfo route,
                               int inport,
                               PortDirection inport_dirn)
@@ -323,9 +323,10 @@ RoutingUnit::outportComputeCube(RouteInfo route,
     // already checked that in outportCompute() function
     assert(my_id != dest_id);
 
-    outport_dirn = m_router->findAdaptiveOutport(my_id, dest_id);
+    std::pair<PortDirection,int> query = m_router->findAdaptiveOutport(my_id, dest_id);
+    outport_dirn = query.first;
 
-    return m_outports_dirn2idx[outport_dirn];
+    return std::make_pair(m_outports_dirn2idx[outport_dirn], query.second);
 }
 
 // Template for implementing custom routing algorithm

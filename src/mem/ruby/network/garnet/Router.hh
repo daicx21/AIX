@@ -100,6 +100,7 @@ class Router : public BasicRouter, public Consumer
             (RoutingAlgorithm) net_ptr->getRoutingAlgorithm();
         m_adaptive = (routing_algorithm == CUBE_);
         if (m_adaptive) {
+            assert(m_vc_per_vnet >= 3);
             adaptiveRouter.init();
         }
     }
@@ -126,11 +127,11 @@ class Router : public BasicRouter, public Consumer
     PortDirection getOutportDirection(int outport);
     PortDirection getInportDirection(int inport);
 
-    int route_compute(RouteInfo route, int inport, PortDirection direction);
+    std::pair<int,int> route_compute(RouteInfo route, int inport, PortDirection direction);
     void grant_switch(int inport, flit *t_flit);
     void schedule_wakeup(Cycles time);
 
-    std::string findAdaptiveOutport(int src, int dst);
+    std::pair<std::string,int> findAdaptiveOutport(int src, int dst);
 
     std::string getPortDirectionName(PortDirection direction);
     void printFaultVector(std::ostream& out);

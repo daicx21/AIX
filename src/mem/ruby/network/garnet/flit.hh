@@ -70,6 +70,7 @@ class flit
     flit_type get_type() { return m_type; }
     std::pair<flit_stage, Tick> get_stage() { return m_stage; }
     Tick get_src_delay() { return src_delay; }
+    int get_label() { return m_label; }
 
     void set_outport(int port) { m_outport = port; }
     void set_time(Tick time) { m_time = time; }
@@ -78,6 +79,7 @@ class flit
     void set_src_delay(Tick delay) { src_delay = delay; }
     void set_dequeue_time(Tick time) { m_dequeue_time = time; }
     void set_enqueue_time(Tick time) { m_enqueue_time = time; }
+    void set_label(int label) { m_label = label; }
 
     void increment_hops() { m_route.hops_traversed++; }
     virtual void print(std::ostream& out) const;
@@ -129,6 +131,7 @@ class flit
     int m_outport;
     Tick src_delay;
     std::pair<flit_stage, Tick> m_stage;
+    int m_label;
 };
 
 inline std::ostream&

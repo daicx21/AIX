@@ -129,11 +129,12 @@ SwitchAllocator::arbitrate_inports()
 
                 int outport = input_unit->get_outport(invc);
                 int outvc = input_unit->get_outvc(invc);
+                int label = input_unit->peekTopFlit(invc)->get_label();
 
                 // check if the flit in this InputVC is allowed to be sent
                 // send_allowed conditions described in that function.
                 bool make_request =
-                    send_allowed(inport, invc, outport, outvc);
+                    send_allowed(inport, invc, outport, outvc, label);
 
                 if (make_request) {
                     m_input_arbiter_activity++;
@@ -186,9 +187,10 @@ SwitchAllocator::arbitrate_outports()
                 int invc = m_vc_winners[inport];
 
                 int outvc = input_unit->get_outvc(invc);
+                int label = input_unit->peekTopFlit(invc)->get_label();
                 if (outvc == -1) {
                     // VC Allocation - select any free VC from outport
-                    outvc = vc_allocate(outport, inport, invc);
+                    outvc = vc_allocate(outport, inport, invc, label);
                 }
 
                 // remove flit from Input VC
@@ -303,7 +305,7 @@ SwitchAllocator::arbitrate_outports()
  */
 
 bool
-SwitchAllocator::send_allowed(int inport, int invc, int outport, int outvc)
+SwitchAllocator::send_allowed(int inport, int invc, int outport, int outvc, int label)
 {
     // Check if outvc needed
     // Check if credit needed (for multi-flit packet)
@@ -319,7 +321,7 @@ SwitchAllocator::send_allowed(int inport, int invc, int outport, int outvc)
         // needs outvc
         // this is only true for HEAD and HEAD_TAIL flits.
 
-        if (output_unit->has_free_vc(vnet)) {
+        if (output_unit->has_free_vc(vnet, label)) {
 
             has_outvc = true;
 
@@ -361,11 +363,11 @@ SwitchAllocator::send_allowed(int inport, int invc, int outport, int outvc)
 
 // Assign a free VC to the winner of the output port.
 int
-SwitchAllocator::vc_allocate(int outport, int inport, int invc)
+SwitchAllocator::vc_allocate(int outport, int inport, int invc, int label)
 {
     // Select a free VC from the output port
     int outvc =
-        m_router->getOutputUnit(outport)->select_free_vc(get_vnet(invc));
+        m_router->getOutputUnit(outport)->select_free_vc(get_vnet(invc), label);
 
     // has to get a valid VC since it checkd before performing SA
     assert(outvc != -1);

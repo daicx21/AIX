@@ -31,6 +31,8 @@
 #ifndef __MEM_RUBY_NETWORK_GARNET_0_ROUTINGUNIT_HH__
 #define __MEM_RUBY_NETWORK_GARNET_0_ROUTINGUNIT_HH__
 
+#include <utility>
+
 #include "mem/ruby/common/Consumer.hh"
 #include "mem/ruby/common/NetDest.hh"
 #include "mem/ruby/network/garnet/CommonTypes.hh"
@@ -54,7 +56,7 @@ class RoutingUnit
 {
   public:
     RoutingUnit(Router *router);
-    int outportCompute(RouteInfo route,
+    std::pair<int,int> outportCompute(RouteInfo route,
                       int inport,
                       PortDirection inport_dirn);
 
@@ -80,7 +82,7 @@ class RoutingUnit
                          PortDirection inport_dirn);
 
     // Routing for Cube
-    int outportComputeCube(RouteInfo route,
+    std::pair<int,int> outportComputeCube(RouteInfo route,
                          int inport,
                          PortDirection inport_dirn);
 

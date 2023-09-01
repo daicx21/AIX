@@ -34,6 +34,7 @@
 #include "debug/RubyNetwork.hh"
 #include "mem/ruby/network/garnet/Credit.hh"
 #include "mem/ruby/network/garnet/Router.hh"
+#include "mem/ruby/network/garnet/AdaptiveRouter.hh"
 
 namespace gem5
 {
@@ -58,7 +59,7 @@ InputUnit::InputUnit(int id, PortDirection direction, Router *router)
 
     // Instantiating the virtual channels
     virtualChannels.reserve(m_num_vcs);
-    for (int i=0; i < m_num_vcs; i++) {
+    for (int i = 0; i < m_num_vcs; i++) {
         virtualChannels.emplace_back();
     }
 }
@@ -98,16 +99,17 @@ InputUnit::wakeup()
             }
 
             // Route computation for this vc
-            int outport = m_router->route_compute(t_flit->get_route(),
+            std::pair<int,int> outport = m_router->route_compute(t_flit->get_route(),
                 m_id, m_direction);
-            t_flit->set_outport(outport);
+            t_flit->set_outport(outport.first);
+            t_flit->set_label(outport.second);
 
             // Update output port in VC
             // All flits in this packet will use this output port
             // The output port field in the flit is updated after it wins SA
             if (is_empty) {
                 
-                grant_outport(vc, outport);
+                grant_outport(vc, outport.first);
             }
             
         }
@@ -118,13 +120,14 @@ InputUnit::wakeup()
             set_vc_active(vc, curTick());
 
             // Route computation for this vc
-            int outport = m_router->route_compute(t_flit->get_route(),
+            std::pair<int,int> outport = m_router->route_compute(t_flit->get_route(),
                 m_id, m_direction);
 
             // Update output port in VC
             // All flits in this packet will use this output port
             // The output port field in the flit is updated after it wins SA
-            grant_outport(vc, outport);
+            grant_outport(vc, outport.first);
+            t_flit->set_label(outport.second);
 
         } else {
             assert(virtualChannels[vc].get_state() == ACTIVE_);

@@ -53,7 +53,8 @@ AdaptiveRouter::AdaptiveRouter(Router *router)
 }
 
 std::pair<int,int>
-AdaptiveRouter::determinePlane(std::vector<int> src, std::vector<int> dst) {
+AdaptiveRouter::determinePlane(std::vector<int> src, std::vector<int> dst)
+{
     int diff = 0, low = -1;
     for (int i = m_dimension - 1; i >= 0; i--) {
         if (src[i] != dst[i]) {
@@ -98,9 +99,11 @@ AdaptiveRouter::init()
     for (int i = 0; i < 2*m_dimension; i++) {
         latency[i] = 1;
     }
+
+    m_adaptive = 1;
 }
 
-std::string
+std::pair<std::string,int>
 AdaptiveRouter::findOutport(int src, int dst) {
     assert(src != dst);
 
@@ -119,10 +122,10 @@ AdaptiveRouter::findOutport(int src, int dst) {
 
     if (ind == m_dimension - 1 || src_index[ind + 1] == dst_index[ind + 1]) {
         if (src_index[ind] < dst_index[ind]) {
-            return "East" + std::to_string(ind);
+            return std::make_pair("East" + std::to_string(ind), 2);
         }
         else {
-            return "West" + std::to_string(ind);
+            return std::make_pair("West" + std::to_string(ind), 2);
         }
     }
     else {
@@ -137,12 +140,18 @@ AdaptiveRouter::findOutport(int src, int dst) {
         assert(prob[realdst][pl] + prob[realdst][ph] == (1<<5));
 
         if ((mt() & ((1<<5) - 1)) < prob[realdst][pl]) {
-            return ((src_index[ind] < dst_index[ind]) ? "East" : "West") + std::to_string(ind);
+            return std::make_pair(((src_index[ind] < dst_index[ind]) ? "East" : "West") + std::to_string(ind), 2);
         }
         else {
-            return ((src_index[ind + 1] < dst_index[ind + 1]) ? "East" : "West") + std::to_string(ind + 1);
+            bool label = (src_index[ind + 1] > dst_index[ind + 1]);
+            return std::make_pair(((src_index[ind + 1] < dst_index[ind + 1]) ? "East" : "West") + std::to_string(ind + 1), label);
         }
     }
+}
+
+void
+AdaptiveRouter::resetStats() {
+    m_adaptive = 0;
 }
 
 } // namespace garnet

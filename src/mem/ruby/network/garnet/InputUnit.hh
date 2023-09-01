@@ -34,6 +34,7 @@
 
 #include <iostream>
 #include <vector>
+#include <utility>
 
 #include "mem/ruby/common/Consumer.hh"
 #include "mem/ruby/network/garnet/CommonTypes.hh"

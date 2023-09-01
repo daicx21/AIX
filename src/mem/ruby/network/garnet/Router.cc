@@ -29,6 +29,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <utility>
 
 #include "mem/ruby/network/garnet/Router.hh"
 
@@ -159,7 +160,7 @@ Router::getInportDirection(int inport)
     return m_input_unit[inport]->get_direction();
 }
 
-int
+std::pair<int, int>
 Router::route_compute(RouteInfo route, int inport, PortDirection inport_dirn)
 {
     return routingUnit.outportCompute(route, inport, inport_dirn);
@@ -178,7 +179,7 @@ Router::schedule_wakeup(Cycles time)
     scheduleEvent(time);
 }
 
-std::string
+std::pair<std::string, int>
 Router::findAdaptiveOutport(int src, int dst) {
     return adaptiveRouter.findOutport(src, dst);
 }
@@ -249,6 +250,7 @@ Router::resetStats()
 
     crossbarSwitch.resetStats();
     switchAllocator.resetStats();
+    adaptiveRouter.resetStats();
 }
 
 void
