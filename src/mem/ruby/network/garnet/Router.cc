@@ -52,9 +52,9 @@ Router::Router(const Params &p)
   : BasicRouter(p), Consumer(this), m_latency(p.latency),
     m_virtual_networks(p.virt_nets), m_vc_per_vnet(p.vcs_per_vnet),
     m_num_vcs(m_virtual_networks * m_vc_per_vnet), m_bit_width(p.width), m_dimension(p.dimension),
-    m_wormhole(p.wormhole),
+    m_wormhole(p.wormhole), m_adaptive(0),
     m_network_ptr(nullptr), routingUnit(this), switchAllocator(this),
-    crossbarSwitch(this)
+    crossbarSwitch(this), adaptiveRouter(this)
 {
     m_input_unit.clear();
     m_output_unit.clear();
@@ -176,6 +176,11 @@ Router::schedule_wakeup(Cycles time)
 {
     // wake up after time cycles
     scheduleEvent(time);
+}
+
+std::string
+Router::findAdaptiveOutport(int src, int dst) {
+    return adaptiveRouter.findOutport(src, dst);
 }
 
 std::string

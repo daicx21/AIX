@@ -45,6 +45,7 @@
 #include "mem/ruby/network/garnet/RoutingUnit.hh"
 #include "mem/ruby/network/garnet/SwitchAllocator.hh"
 #include "mem/ruby/network/garnet/flit.hh"
+#include "mem/ruby/network/garnet/AdaptiveRouter.hh"
 #include "params/GarnetRouter.hh"
 
 namespace gem5
@@ -86,6 +87,7 @@ class Router : public BasicRouter, public Consumer
     uint32_t get_num_vcs()       { return m_num_vcs; }
     uint32_t get_num_vnets()     { return m_virtual_networks; }
     uint32_t get_vc_per_vnet()   { return m_vc_per_vnet; }
+    uint32_t get_dimension()   { return m_dimension; }
     bool get_wormhole()          { return m_wormhole; }
     int get_num_inports()   { return m_input_unit.size(); }
     int get_num_outports()  { return m_output_unit.size(); }
@@ -94,6 +96,12 @@ class Router : public BasicRouter, public Consumer
     void init_net_ptr(GarnetNetwork* net_ptr)
     {
         m_network_ptr = net_ptr;
+        RoutingAlgorithm routing_algorithm =
+            (RoutingAlgorithm) net_ptr->getRoutingAlgorithm();
+        m_adaptive = (routing_algorithm == CUBE_);
+        if (m_adaptive) {
+            adaptiveRouter.init();
+        }
     }
 
     GarnetNetwork* get_net_ptr()                    { return m_network_ptr; }
@@ -122,6 +130,8 @@ class Router : public BasicRouter, public Consumer
     void grant_switch(int inport, flit *t_flit);
     void schedule_wakeup(Cycles time);
 
+    std::string findAdaptiveOutport(int src, int dst);
+
     std::string getPortDirectionName(PortDirection direction);
     void printFaultVector(std::ostream& out);
     void printAggregateFaultProbability(std::ostream& out);
@@ -148,12 +158,14 @@ class Router : public BasicRouter, public Consumer
     Cycles m_latency;
     uint32_t m_virtual_networks, m_vc_per_vnet, m_num_vcs;
     uint32_t m_bit_width, m_dimension;
-    bool m_wormhole;
+    bool m_wormhole, m_adaptive;
     GarnetNetwork *m_network_ptr;
 
     RoutingUnit routingUnit;
     SwitchAllocator switchAllocator;
     CrossbarSwitch crossbarSwitch;
+
+    AdaptiveRouter adaptiveRouter;
 
     std::vector<std::shared_ptr<InputUnit>> m_input_unit;
     std::vector<std::shared_ptr<OutputUnit>> m_output_unit;

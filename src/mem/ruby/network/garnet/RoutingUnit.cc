@@ -323,21 +323,7 @@ RoutingUnit::outportComputeCube(RouteInfo route,
     // already checked that in outportCompute() function
     assert(my_id != dest_id);
 
-    int east_hops = (dest_id - my_id + num_routers) % num_routers;
-    int west_hops = (my_id - dest_id + num_routers) % num_routers;
-
-    if (east_hops == west_hops) {
-        if (rand() % 2 == 0) {
-            outport_dirn = "East";
-        }
-        else {
-            outport_dirn = "West";
-        }
-    } else if (east_hops < west_hops) {
-        outport_dirn = "East";
-    } else {
-        outport_dirn = "West";
-    }
+    outport_dirn = m_router->findAdaptiveOutport(my_id, dest_id);
 
     return m_outports_dirn2idx[outport_dirn];
 }

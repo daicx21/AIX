@@ -36,6 +36,7 @@
 #include "mem/ruby/network/garnet/CommonTypes.hh"
 #include "mem/ruby/network/garnet/GarnetNetwork.hh"
 #include "mem/ruby/network/garnet/flit.hh"
+#include "mem/ruby/network/garnet/AdaptiveRouter.hh"
 
 namespace gem5
 {
