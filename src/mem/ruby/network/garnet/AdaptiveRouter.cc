@@ -176,7 +176,7 @@ AdaptiveRouter::findOutport(int src, int dst) {
         }
         else {
             //std::cout << 10 << std::endl;
-            bool label = (src_index[ind + 1] > dst_index[ind + 1]);
+            bool label = (src_index[ind] > dst_index[ind]);
             return std::make_pair(((src_index[ind + 1] < dst_index[ind + 1]) ? "East" : "West") + std::to_string(ind + 1), label);
         }
     }
