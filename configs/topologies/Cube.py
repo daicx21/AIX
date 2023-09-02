@@ -153,7 +153,7 @@ class Cube(SimpleTopology):
                             src_outport="East"+str(j),
                             dst_inport="West"+str(j),
                             latency=link_latency,
-                            weight=1,
+                            weight=j+1,
                         )
                     )
                     link_count += 1
@@ -177,7 +177,7 @@ class Cube(SimpleTopology):
                             src_outport="West"+str(j),
                             dst_inport="East"+str(j),
                             latency=link_latency,
-                            weight=1,
+                            weight=j+1,
                         )
                     )
                     link_count += 1
