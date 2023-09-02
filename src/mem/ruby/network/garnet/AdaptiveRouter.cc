@@ -48,8 +48,6 @@ AdaptiveRouter::AdaptiveRouter(Router *router)
   : Consumer(router), m_router(router), m_dimension(m_router->get_dimension()),
     m_adaptive(0)
 {
-    num_routers = m_router->get_net_ptr()->getNumRouters();
-    m_arys = (uint32_t)round(pow(num_routers, 1.0 / m_dimension));
 }
 
 std::pair<int,int>
@@ -76,7 +74,11 @@ AdaptiveRouter::determinePlane(std::vector<int> src, std::vector<int> dst)
 void
 AdaptiveRouter::init()
 {
-    prob.resize(m_router->get_dimension());
+    num_routers = m_router->get_net_ptr()->getNumRouters();
+    m_arys = (uint32_t)round(pow(num_routers, 1.0 / m_dimension));
+
+    prob.clear();
+    prob.resize(num_routers);
     std::vector<int> src = decode(m_router->get_id());
     for (int router = 0; router < num_routers; router++) {
         prob[router].resize(0);
@@ -95,6 +97,7 @@ AdaptiveRouter::init()
         }
     }
 
+    latency.clear();
     latency.resize(2*m_dimension);
     for (int i = 0; i < 2*m_dimension; i++) {
         latency[i] = 1;

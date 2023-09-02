@@ -51,7 +51,7 @@ class Cube(SimpleTopology):
         nodes = self.nodes
 
         num_routers = options.num_cpus
-        num_dimension = options.num_dimension
+        num_dimension = options.dimension
 
         # default values for link latency and router latency.
         # Can be over-ridden on a per link/router basis

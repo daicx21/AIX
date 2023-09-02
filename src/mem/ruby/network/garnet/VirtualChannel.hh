@@ -110,7 +110,6 @@ class VirtualChannel
     int m_output_port;
     Tick m_enqueue_time;
     int m_output_vc;
-    int m_label;
 };
 
 } // namespace garnet
