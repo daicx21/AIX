@@ -85,6 +85,7 @@ class AdaptiveRouter : public Consumer
     std::pair<int,int> determinePlane(std::vector<int> src, std::vector<int> dst);
     std::pair<std::string,int> findOutport(int src, int dst);
 
+    void set_adaptive() { m_adaptive = 1; }
     void resetStats();
 
   private:

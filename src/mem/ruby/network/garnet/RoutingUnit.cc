@@ -311,6 +311,7 @@ RoutingUnit::outportComputeCube(RouteInfo route,
                               int inport,
                               PortDirection inport_dirn)
 {
+    //std::cout << 233 << std::endl;
     PortDirection outport_dirn = "Unknown";
     
     int num_routers = m_router->get_net_ptr()->getNumRouters();
@@ -322,9 +323,16 @@ RoutingUnit::outportComputeCube(RouteInfo route,
 
     // already checked that in outportCompute() function
     assert(my_id != dest_id);
+    assert(my_id >= 0);
+    assert(my_id < num_routers);
+    assert(dest_id >= 0);
+    assert(dest_id < num_routers);
 
     std::pair<PortDirection,int> query = m_router->findAdaptiveOutport(my_id, dest_id);
     outport_dirn = query.first;
+
+    //std::cout << 466 << std::endl;
+    assert(m_outports_dirn2idx.count(outport_dirn));
 
     return std::make_pair(m_outports_dirn2idx[outport_dirn], query.second);
 }

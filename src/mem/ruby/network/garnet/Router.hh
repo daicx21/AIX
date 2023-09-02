@@ -101,7 +101,8 @@ class Router : public BasicRouter, public Consumer
         m_adaptive = (routing_algorithm == CUBE_);
         if (m_adaptive) {
             assert(m_vc_per_vnet >= 3);
-            adaptiveRouter.init();
+            //std::cout << 111 << std::endl;
+            adaptiveRouter.set_adaptive();
         }
     }
 

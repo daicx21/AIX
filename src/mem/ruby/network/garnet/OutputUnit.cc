@@ -142,7 +142,12 @@ OutputUnit::isMatch(int out_vc, int label)
 {
     if (label != -1) {
         int block = (m_vc_per_vnet / 3);
-        return label == ((out_vc % m_vc_per_vnet) / block);
+        int belong = (out_vc % m_vc_per_vnet) / block;
+        if (belong > 2) {
+            belong = 2;
+        }
+
+        return label == belong;
     }
     else {
         return true;
