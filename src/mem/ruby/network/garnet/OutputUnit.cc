@@ -88,7 +88,6 @@ OutputUnit::increment_credit(int out_vc)
 bool
 OutputUnit::has_credit(int out_vc)
 {
-    assert(outVcState[out_vc].isInState(ACTIVE_, curTick()));
     return outVcState[out_vc].has_credit();
 }
 
@@ -199,7 +198,6 @@ OutputUnit::wakeup()
         delete t_credit;
 
         if (m_credit_link->isReady(curTick())) {
-            puts("!!!");
             scheduleEvent(Cycles(1));
         }
     }
