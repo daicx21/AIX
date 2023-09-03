@@ -82,14 +82,18 @@ NetworkLink::setSourceQueue(flitBuffer *src_queue, ClockedObject *srcClockObj)
 void
 NetworkLink::wakeup()
 {
+    //puts("1");
     DPRINTF(RubyNetwork, "Woke up to transfer flits from %s\n",
         src_object->name());
     assert(link_srcQueue != nullptr);
     assert(curTick() == clockEdge());
+    //puts("2");
     if (link_srcQueue->isReady(curTick())) {
+        //puts("3");
         flit *t_flit = link_srcQueue->getTopFlit();
         DPRINTF(RubyNetwork, "Transmission will finish at %ld :%s\n",
                 clockEdge(m_latency), *t_flit);
+        //puts("4");
         if (m_type != NUM_LINK_TYPES_) {
             // Only for assertions and debug messages
             assert(t_flit->m_width == bitWidth);
@@ -101,12 +105,13 @@ NetworkLink::wakeup()
         linkBuffer.insert(t_flit);
         link_consumer->scheduleEventAbsolute(clockEdge(m_latency));
         m_link_utilized++;
-        m_vc_load[t_flit->get_vc()]++;
+        if (t_flit->get_vc()>=0) m_vc_load[t_flit->get_vc()]++;
     }
 
     if (!link_srcQueue->isEmpty()) {
         scheduleEvent(Cycles(1));
     }
+    //puts("10");
 }
 
 void

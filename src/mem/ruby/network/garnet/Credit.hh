@@ -55,18 +55,15 @@ class Credit : public flit
 {
   public:
     Credit() {};
-    Credit(int vc, bool is_free_signal, Tick curTime);
-
-    // Functions used by SerDes
-    flit* serialize(int ser_id, int parts, uint32_t bWidth);
-    flit* deserialize(int des_id, int num_flits, uint32_t bWidth);
-    void print(std::ostream& out) const;
+    Credit(int vc, bool is_free_signal, Tick curTime, int cong);
 
     ~Credit() {};
 
+    int get_cong() { return m_cong; }
     bool is_free_signal() { return m_is_free_signal; }
 
   private:
+    int m_cong;
     bool m_is_free_signal;
 };
 

@@ -32,5 +32,5 @@ def add_protocols_var():
                                  'None', main['ALL_PROTOCOLS']))
 AfterSConsopts(add_protocols_var)
 
-sticky_vars.Add(('NUMBER_BITS_PER_SET', 'Max elements in set (default 64)',
-                 64))
+sticky_vars.Add(('NUMBER_BITS_PER_SET', 'Max elements in set (default 512)',
+                 512))

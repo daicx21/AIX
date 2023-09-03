@@ -192,8 +192,10 @@ RoutingUnit::outportCompute(RouteInfo route, int inport,
             std::make_pair(outportComputeXY(route, inport, inport_dirn), -1); break;
         case RING_:     outport =
             std::make_pair(outportComputeRing(route, inport, inport_dirn), -1); break;
-        case CUBE_:     outport =
-            outportComputeCube(route, inport, inport_dirn); break;
+        case PLANAR_:     outport =
+            outportComputePlanar(route, inport, inport_dirn); break;
+        case BOE_:     outport =
+            std::make_pair(outportComputeBOE(route, inport, inport_dirn), -1); break;
         // any custom algorithm
         case CUSTOM_: outport =
             std::make_pair(outportComputeCustom(route, inport, inport_dirn), -1); break;
@@ -303,11 +305,8 @@ RoutingUnit::outportComputeRing(RouteInfo route,
     return m_outports_dirn2idx[outport_dirn];
 }
 
-// Custom routing algorithm
-// Only for reference purpose in a Cube
-// By default Garnet uses the routing table
 std::pair<int,int>
-RoutingUnit::outportComputeCube(RouteInfo route,
+RoutingUnit::outportComputePlanar(RouteInfo route,
                               int inport,
                               PortDirection inport_dirn)
 {
@@ -328,13 +327,42 @@ RoutingUnit::outportComputeCube(RouteInfo route,
     assert(dest_id >= 0);
     assert(dest_id < num_routers);
 
-    std::pair<PortDirection,int> query = m_router->findAdaptiveOutport(my_id, dest_id);
+    std::pair<PortDirection,int> query = m_router->findPlanarOutport(my_id, dest_id);
     outport_dirn = query.first;
 
     //std::cout << 466 << std::endl;
     assert(m_outports_dirn2idx.count(outport_dirn));
 
     return std::make_pair(m_outports_dirn2idx[outport_dirn], query.second);
+}
+
+int
+RoutingUnit::outportComputeBOE(RouteInfo route,
+                              int inport,
+                              PortDirection inport_dirn)
+{
+    //std::cout << 233 << std::endl;
+    PortDirection outport_dirn = "Unknown";
+    
+    int num_routers = m_router->get_net_ptr()->getNumRouters();
+    assert(num_routers > 0);
+
+    int my_id = m_router->get_id();
+
+    int dest_id = route.dest_router;
+
+    // already checked that in outportCompute() function
+    assert(my_id != dest_id);
+    assert(my_id >= 0);
+    assert(my_id < num_routers);
+    assert(dest_id >= 0);
+    assert(dest_id < num_routers);
+
+    outport_dirn = m_router->findBOEOutport(inport_dirn, my_id, dest_id);
+
+    assert(m_outports_dirn2idx.count(outport_dirn));
+
+    return m_outports_dirn2idx[outport_dirn];
 }
 
 // Template for implementing custom routing algorithm

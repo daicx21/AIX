@@ -46,8 +46,50 @@ namespace garnet
 
 AdaptiveRouter::AdaptiveRouter(Router *router)
   : Consumer(router), m_router(router), m_dimension(m_router->get_dimension()),
-    m_adaptive(0)
+    m_adaptive(false),not_init(true)
 {
+}
+
+int 
+AdaptiveRouter::getValue(int outport)
+{
+    if (not_init) {
+        init();
+        not_init = 0;
+    }
+    if (m_adaptive_algorithm==RANDOM_) return mt();
+    else if (m_adaptive_algorithm==LOCAL_) return loc[outport];
+    return cong[outport];
+}
+
+void
+AdaptiveRouter::setLoc(int x,int y)
+{
+    if (not_init) {
+        init();
+        not_init = 0;
+    }
+    loc[x]=y;
+}
+
+void
+AdaptiveRouter::setCong(int x,int y)
+{
+    if (not_init) {
+        init();
+        not_init = 0;
+    }
+    cong[x]=y;
+}
+
+int
+AdaptiveRouter::getCong(int x,int y)
+{
+    if (not_init) {
+        init();
+        not_init = 0;
+    }
+    return weight[x][y]*cong[y];
 }
 
 std::pair<int,int>
@@ -76,43 +118,58 @@ AdaptiveRouter::init()
 {
     num_routers = m_router->get_net_ptr()->getNumRouters();
     m_arys = (uint32_t)round(pow(num_routers, 1.0 / m_dimension));
-    
-    //std::cout << num_routers << m_dimension << m_arys << std::endl;
 
-    prob.clear();
-    prob.resize(num_routers);
-    std::vector<int> src = decode(m_router->get_id());
-    for (int router = 0; router < num_routers; router++) {
-        prob[router].clear();
-        std::vector<int> dst = decode(router);
+    int n=m_router->get_num_inports(),m=m_router->get_num_outports();
 
-        auto cur = determinePlane(src, dst);
-        //std::cout << router << std::endl;
-        if (cur.first == 2) {
-            int pl = 2 * cur.second + (src[cur.second] > dst[cur.second]);
-            int ph = 2 * (cur.second + 1) + (src[cur.second + 1] > dst[cur.second + 1]);
-
-            prob[router].resize(2*m_dimension);
-            for (int i = 0; i < 2*m_dimension; i++) {
-                prob[router][i] = 0;
-            }
-            prob[router][pl] = prob[router][ph] = (1<<4);
-        }
-        //std::cout << router << std::endl;
+    loc.clear();
+    loc.resize(m);
+    for (int i = 0; i < m; i++) {
+        loc[i] = 0;
     }
 
-    latency.clear();
-    latency.resize(2*m_dimension);
-    for (int i = 0; i < 2*m_dimension; i++) {
-        latency[i] = 1;
+    if (m_adaptive_algorithm == RCA_)
+    {
+        cong.clear();
+        cong.resize(m);
+        for (int i = 0; i < m; i++) cong[i] = 0;
+        weight.clear();
+        weight.resize(n);
+        for (int i = 0; i < n; i++)
+        {
+            weight[i].resize(m);
+            for (int j = 0; j < m; j++)
+            {
+                weight[i][j] = 0;
+            }
+        }
+        std::vector<int> src=decode(m_router->get_id());
+        for (int i = 0; i < m_dimension; i++)
+        {
+            PortDirection Inport1="West"+std::to_string(i),Inport2="East"+std::to_string(i);
+            int id1 = m_router->ComputeInportDirn2Idx(Inport1), id2 = m_router->ComputeInportDirn2Idx(Inport2);
+            for (int j = 0; j < m_dimension; j++) if (j != i)
+            {
+                PortDirection Outport1="West"+std::to_string(j),Outport2="East"+std::to_string(j);
+                int id3=m_router->ComputeOutportDirn2Idx(Outport1),id4=m_router->ComputeOutportDirn2Idx(Outport2);
+                if (src[i]>0&&src[j]>0) weight[id1][id3]=1;
+                if (src[i]>0&&src[j]<m_arys-1) weight[id1][id4]=1;
+                if (src[i]<m_arys-1&&src[j]>0) weight[id2][id3]=1;
+                if (src[i]<m_arys-1&&src[j]<m_arys-1) weight[id2][id4]=1;
+            }
+            if (src[i]>0&&src[i]<m_arys-1)
+            {
+                weight[id1][m_router->ComputeOutportDirn2Idx(Inport2)]=2*(m_dimension-1);
+                weight[id2][m_router->ComputeOutportDirn2Idx(Inport1)]=2*(m_dimension-1);
+            }
+        }
     }
 }
 
 std::pair<std::string,int>
-AdaptiveRouter::findOutport(int src, int dst) {
-    if (m_adaptive) {
+AdaptiveRouter::findPlanarOutport(int src, int dst) {
+    if (not_init) {
         init();
-        m_adaptive = 0;
+        not_init = 0;
     }
 
     assert(src != dst);
@@ -121,8 +178,6 @@ AdaptiveRouter::findOutport(int src, int dst) {
 
     std::vector<int> src_index = decode(src);
     std::vector<int> dst_index = decode(dst);
-
-    //std::cout << 2 << std::endl;
 
     int ind = -1;
     for (int i = 0; i < m_dimension; i++) {
@@ -161,29 +216,34 @@ AdaptiveRouter::findOutport(int src, int dst) {
 
         assert(realdst >= 0);
         assert(realdst < num_routers);
-        int pl = 2 * ind + (src_index[ind] > dst_index[ind]);
-        int ph = 2 * (ind + 1) + (src_index[ind + 1] > dst_index[ind + 1]);
+
+        std::string str1=((src_index[ind] < dst_index[ind]) ? "East" : "West") + std::to_string(ind);
+        std::string str2=((src_index[ind + 1] < dst_index[ind + 1]) ? "East" : "West") + std::to_string(ind + 1);
+
+        int pl = m_router->ComputeOutportDirn2Idx(str1);
+        int ph = m_router->ComputeOutportDirn2Idx(str2);
 
         //std::cout << 8 << std::endl;
 
-        assert(!prob[realdst].empty());
-
-        assert(prob[realdst][pl] + prob[realdst][ph] == (1<<5));
-
-        if ((mt() & ((1<<5) - 1)) < prob[realdst][pl]) {
+        if (getValue(pl)<getValue(ph)) {
             //std::cout << 9 << std::endl;
-            return std::make_pair(((src_index[ind] < dst_index[ind]) ? "East" : "West") + std::to_string(ind), 2);
+            return std::make_pair(str1, 2);
         }
         else {
             //std::cout << 10 << std::endl;
             bool label = (src_index[ind] > dst_index[ind]);
-            return std::make_pair(((src_index[ind + 1] < dst_index[ind + 1]) ? "East" : "West") + std::to_string(ind + 1), label);
+            return std::make_pair(str2, label);
         }
     }
 }
 
-void
-AdaptiveRouter::resetStats() {
+std::string
+AdaptiveRouter::findBOEOutport(PortDirection inport_dirn, int src, int dst) {
+    if (not_init) {
+        init();
+        not_init = 0;
+    }
+    panic("%s placeholder executed", __FUNCTION__);
 }
 
 } // namespace garnet

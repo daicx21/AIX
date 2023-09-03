@@ -70,6 +70,7 @@ GarnetNetwork::GarnetNetwork(const Params &p)
     m_buffers_per_data_vc = p.buffers_per_data_vc;
     m_buffers_per_ctrl_vc = p.buffers_per_ctrl_vc;
     m_routing_algorithm = p.routing_algorithm;
+    m_adaptive_algorithm = p.adaptive_algorithm;
     m_next_packet_id = 0;
     m_num_cpus = p.num_cpus;
     m_sim_cycles = p.sim_cycles;

@@ -249,7 +249,7 @@ NetworkInterface::wakeup()
                     // Simply send a credit back since we are not buffering
                     // this flit in the NI
                     Credit *cFlit = new Credit(t_flit->get_vc(),
-                                               true, curTick());
+                                               true, curTick(), 0);
                     iPort->sendCredit(cFlit);
                     // Update stats and delete flit pointer
                     incrementStats(t_flit);
@@ -268,7 +268,7 @@ NetworkInterface::wakeup()
             } else {
                 // Non-tail flit. Send back a credit but not VC free signal.
                 Credit *cFlit = new Credit(t_flit->get_vc(), false,
-                                               curTick());
+                                               curTick(), 0);
                 // Simply send a credit back since we are not buffering
                 // this flit in the NI
                 iPort->sendCredit(cFlit);
@@ -286,11 +286,18 @@ NetworkInterface::wakeup()
         CreditLink *inCreditLink = oPort->inCreditLink();
         if (inCreditLink->isReady(curTick())) {
             Credit *t_credit = (Credit*) inCreditLink->consumeLink();
-            outVcState[t_credit->get_vc()].increment_credit();
-            if (t_credit->is_free_signal()) {
-                outVcState[t_credit->get_vc()].setState(IDLE_,
+
+            int vc=t_credit->get_vc();
+
+            if (vc>=0)
+            {
+                outVcState[vc].increment_credit();
+                if (t_credit->is_free_signal()) {
+                    outVcState[vc].setState(IDLE_,
                     curTick());
+                }
             }
+
             delete t_credit;
         }
     }
@@ -337,7 +344,7 @@ NetworkInterface::checkStallQueue()
                     // Send back a credit with free signal now that the
                     // VC is no longer stalled.
                     Credit *cFlit = new Credit(stallFlit->get_vc(), true,
-                                                   curTick());
+                                                   curTick(), 0);
                     iPort->sendCredit(cFlit);
 
                     // Update Stats

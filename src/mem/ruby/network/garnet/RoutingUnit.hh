@@ -81,8 +81,13 @@ class RoutingUnit
                          int inport,
                          PortDirection inport_dirn);
 
-    // Routing for Cube
-    std::pair<int,int> outportComputeCube(RouteInfo route,
+    // Routing for Planar
+    std::pair<int,int> outportComputePlanar(RouteInfo route,
+                         int inport,
+                         PortDirection inport_dirn);
+    
+    // Routing for BOE
+    int outportComputeBOE(RouteInfo route,
                          int inport,
                          PortDirection inport_dirn);
 
@@ -94,6 +99,9 @@ class RoutingUnit
     // Returns true if vnet is present in the vector
     // of vnets or if the vector supports all vnets.
     bool supportsVnet(int vnet, std::vector<int> sVnets);
+
+    int ComputeInportDirn2Idx(PortDirection port) { return m_inports_dirn2idx[port]; }
+    int ComputeOutportDirn2Idx(PortDirection port) { return m_outports_dirn2idx[port]; }
 
 
   private:

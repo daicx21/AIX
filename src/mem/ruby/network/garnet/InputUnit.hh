@@ -38,6 +38,7 @@
 
 #include "mem/ruby/common/Consumer.hh"
 #include "mem/ruby/network/garnet/CommonTypes.hh"
+#include "mem/ruby/network/garnet/Credit.hh"
 #include "mem/ruby/network/garnet/CreditLink.hh"
 #include "mem/ruby/network/garnet/NetworkLink.hh"
 #include "mem/ruby/network/garnet/Router.hh"
@@ -163,6 +164,7 @@ class InputUnit : public Consumer
     uint32_t functionalWrite(Packet *pkt);
 
     void resetStats();
+    void send_credit(int in_vc, bool free_signal, Tick curTime, int now);
 
   private:
     Router *m_router;

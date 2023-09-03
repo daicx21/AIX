@@ -92,6 +92,12 @@ OutputUnit::has_credit(int out_vc)
     return outVcState[out_vc].has_credit();
 }
 
+bool
+OutputUnit::is_not_empty(int out_vc)
+{
+    return outVcState[out_vc].is_not_empty();
+}
+
 
 // Check if the output port (i.e., input port at next router) has free VCs.
 bool
@@ -166,15 +172,34 @@ void
 OutputUnit::wakeup()
 {
     if (m_credit_link->isReady(curTick())) {
-        Credit *t_credit = (Credit*) m_credit_link->consumeLink();
-        increment_credit(t_credit->get_vc());
 
-        if (t_credit->is_free_signal())
-            set_vc_state(IDLE_, t_credit->get_vc(), curTick());
+        Credit *t_credit = (Credit*) m_credit_link->consumeLink();
+
+        int vc=t_credit->get_vc();
+
+        if (vc>=0)
+        {
+            increment_credit(vc);
+
+            if (t_credit->is_free_signal())
+                set_vc_state(IDLE_, vc, curTick());
+        }
+
+        if (m_router->get_net_ptr()->getAdaptive())
+        {
+            int now=0;
+            for (int vc=0;vc<m_vc_per_vnet;vc++) if (is_not_empty(vc)) now++;
+            m_router->setLoc(m_id,now);
+            if (m_router->get_net_ptr()->getAdaptiveAlgorithm()==2)
+            {
+                m_router->setCong(m_id,((now<<5)+t_credit->get_cong())>>1);
+            }
+        }
 
         delete t_credit;
 
         if (m_credit_link->isReady(curTick())) {
+            puts("!!!");
             scheduleEvent(Cycles(1));
         }
     }

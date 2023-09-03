@@ -93,8 +93,8 @@ InputUnit::wakeup()
             assert(t_flit->get_type() == HEAD_TAIL_);
 
             bool is_empty = virtualChannels[vc].isEmpty();
+            
             if (is_empty) {
-
                 set_vc_active(vc, curTick());
             }
 
@@ -108,7 +108,6 @@ InputUnit::wakeup()
             // All flits in this packet will use this output port
             // The output port field in the flit is updated after it wins SA
             if (is_empty) {
-                
                 grant_outport(vc, outport.first);
             }
             
@@ -171,9 +170,15 @@ InputUnit::wakeup()
 void
 InputUnit::increment_credit(int in_vc, bool free_signal, Tick curTime)
 {
-    DPRINTF(RubyNetwork, "Router[%d]: Sending a credit vc:%d free:%d to %s\n",
-    m_router->get_id(), in_vc, free_signal, m_credit_link->name());
-    Credit *t_credit = new Credit(in_vc, free_signal, curTime);
+    //DPRINTF(RubyNetwork, "Router[%d]: Sending a credit vc:%d free:%d to %s\n",
+    //m_router->get_id(), in_vc, free_signal, m_credit_link->name());
+    m_router->set_input_credit(m_id,in_vc,free_signal);
+}
+
+void
+InputUnit::send_credit(int in_vc, bool free_signal, Tick curTime, int now)
+{
+    Credit *t_credit=new Credit(in_vc,free_signal,curTime,now);
     creditQueue.insert(t_credit);
     m_credit_link->scheduleEventAbsolute(m_router->clockEdge(Cycles(1)));
 }

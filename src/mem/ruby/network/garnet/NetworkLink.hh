@@ -78,6 +78,8 @@ class NetworkLink : public ClockedObject, public Consumer
         return linkBuffer.isReady(curTime);
     }
 
+    inline int gao() { return linkBuffer.getSize(); }
+
     inline flit* peekLink() { return linkBuffer.peekTopFlit(); }
     inline flit* consumeLink() { return linkBuffer.getTopFlit(); }
 

@@ -82,19 +82,32 @@ class AdaptiveRouter : public Consumer
         return node;
     }
 
-    std::pair<int,int> determinePlane(std::vector<int> src, std::vector<int> dst);
-    std::pair<std::string,int> findOutport(int src, int dst);
+    int getValue(int outport);
+    void setLoc(int x,int y);
+    void setCong(int x,int y);
+    int getCong(int x,int y);
 
-    void set_adaptive() { m_adaptive = 1; }
-    void resetStats();
+    std::pair<int,int> determinePlane(std::vector<int> src, std::vector<int> dst);
+    std::pair<std::string,int> findPlanarOutport(int src, int dst);
+    std::string findBOEOutport(PortDirection inport_dirn, int src, int dst);
+
+    void set_adaptive(RoutingAlgorithm routing_algorithm, AdaptiveAlgorithm adaptive_algorithm)
+    {
+        m_adaptive = (routing_algorithm == PLANAR_) || (routing_algorithm == BOE_);
+        m_routing_algorithm = routing_algorithm;
+        m_adaptive_algorithm = adaptive_algorithm;
+        not_init = true;
+    }
 
   private:
     Router *m_router;
     uint32_t num_routers;
     uint32_t m_dimension, m_arys;
-    bool m_adaptive;
-    Matrix prob;
-    std::vector<int> latency;
+    RoutingAlgorithm m_routing_algorithm;
+    AdaptiveAlgorithm m_adaptive_algorithm;
+    bool not_init,m_adaptive;
+    Matrix weight;
+    std::vector<int> cong,loc;
     std::mt19937 mt;
 };
 

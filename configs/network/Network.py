@@ -114,6 +114,13 @@ def define_options(parser):
             2: Custom (see garnet/RoutingUnit.cc""",
     )
     parser.add_argument(
+        "--adaptive-algorithm",
+        action="store",
+        type=int,
+        default=0,
+        help="adaptive algorithm in network.",
+    )
+    parser.add_argument(
         "--network-fault-model",
         action="store_true",
         default=False,
@@ -199,6 +206,7 @@ def init_network(options, network, InterfaceClass):
         network.buffers_per_ctrl_vc = options.buffers_per_ctrl_vc
         network.ni_flit_size = options.link_width_bits / 8
         network.routing_algorithm = options.routing_algorithm
+        network.adaptive_algorithm = options.adaptive_algorithm
         network.garnet_deadlock_threshold = options.garnet_deadlock_threshold
         network.num_cpus = options.num_cpus
         network.sim_cycles = options.sim_cycles

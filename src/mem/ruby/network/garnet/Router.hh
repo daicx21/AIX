@@ -93,16 +93,20 @@ class Router : public BasicRouter, public Consumer
     int get_num_outports()  { return m_output_unit.size(); }
     int get_id()            { return m_id; }
 
+    void setLoc(int x,int y) { adaptiveRouter.setLoc(x,y); }
+    void setCong(int x,int y) { adaptiveRouter.setCong(x,y); }
+
     void init_net_ptr(GarnetNetwork* net_ptr)
     {
         m_network_ptr = net_ptr;
         RoutingAlgorithm routing_algorithm =
             (RoutingAlgorithm) net_ptr->getRoutingAlgorithm();
-        m_adaptive = (routing_algorithm == CUBE_);
+        AdaptiveAlgorithm adaptive_algorithm = 
+            (AdaptiveAlgorithm) net_ptr->getAdaptiveAlgorithm();
+        m_adaptive = (routing_algorithm == PLANAR_) || (routing_algorithm == BOE_);
         if (m_adaptive) {
-            assert(m_vc_per_vnet >= 3);
-            //std::cout << 111 << std::endl;
-            adaptiveRouter.set_adaptive();
+            if (routing_algorithm == BOE_) assert(m_dimension == 3);
+            adaptiveRouter.set_adaptive(routing_algorithm, adaptive_algorithm);
         }
     }
 
@@ -132,7 +136,8 @@ class Router : public BasicRouter, public Consumer
     void grant_switch(int inport, flit *t_flit);
     void schedule_wakeup(Cycles time);
 
-    std::pair<std::string,int> findAdaptiveOutport(int src, int dst);
+    std::pair<std::string,int> findPlanarOutport(int src, int dst);
+    std::string findBOEOutport(PortDirection inport_dirn, int src, int dst);
 
     std::string getPortDirectionName(PortDirection direction);
     void printFaultVector(std::ostream& out);
@@ -156,6 +161,11 @@ class Router : public BasicRouter, public Consumer
     bool functionalRead(Packet *pkt, WriteMask &mask);
     uint32_t functionalWrite(Packet *);
 
+    void set_input_credit(int x,int y,bool z) { cur_input_vc[x]=y;cur_is_free_signal[x]=z; }
+
+    int ComputeInportDirn2Idx(PortDirection direction) { return routingUnit.ComputeInportDirn2Idx(direction); }
+    int ComputeOutportDirn2Idx(PortDirection direction) { return routingUnit.ComputeOutportDirn2Idx(direction); }
+
   private:
     Cycles m_latency;
     uint32_t m_virtual_networks, m_vc_per_vnet, m_num_vcs;
@@ -168,6 +178,9 @@ class Router : public BasicRouter, public Consumer
     CrossbarSwitch crossbarSwitch;
 
     AdaptiveRouter adaptiveRouter;
+
+    std::vector<int> cur_input_vc;
+    std::vector<bool> cur_is_free_signal;
 
     std::vector<std::shared_ptr<InputUnit>> m_input_unit;
     std::vector<std::shared_ptr<OutputUnit>> m_output_unit;

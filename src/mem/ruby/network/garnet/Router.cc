@@ -34,6 +34,7 @@
 #include "mem/ruby/network/garnet/Router.hh"
 
 #include "debug/RubyNetwork.hh"
+#include "mem/ruby/network/garnet/Credit.hh"
 #include "mem/ruby/network/garnet/CreditLink.hh"
 #include "mem/ruby/network/garnet/GarnetNetwork.hh"
 #include "mem/ruby/network/garnet/InputUnit.hh"
@@ -91,11 +92,30 @@ Router::wakeup()
         m_output_unit[outport]->wakeup();
     }
 
+    cur_input_vc.resize(m_input_unit.size());
+    cur_is_free_signal.resize(m_input_unit.size());
+    for (int inport=0;inport<m_input_unit.size();inport++)
+    {
+        cur_input_vc[inport]=-1;
+        cur_is_free_signal[inport]=false;
+    }
+
     // Switch Allocation
     switchAllocator.wakeup();
 
     // Switch Traversal
     crossbarSwitch.wakeup();
+
+    for (int inport=0;inport<m_input_unit.size();inport++)
+    {
+        int now=0;
+        if (m_adaptive&&get_net_ptr()->getAdaptiveAlgorithm()==2)
+        {
+            for (int outport=0;outport<m_output_unit.size();outport++) now+=adaptiveRouter.getCong(inport,outport);
+            now/=4*(m_dimension-1);
+        }
+        m_input_unit[inport]->send_credit(cur_input_vc[inport], cur_is_free_signal[inport], curTick(), now);
+    }
 }
 
 void
@@ -180,8 +200,13 @@ Router::schedule_wakeup(Cycles time)
 }
 
 std::pair<std::string, int>
-Router::findAdaptiveOutport(int src, int dst) {
-    return adaptiveRouter.findOutport(src, dst);
+Router::findPlanarOutport(int src, int dst) {
+    return adaptiveRouter.findPlanarOutport(src, dst);
+}
+
+std::string
+Router::findBOEOutport(PortDirection inport_dirn, int src, int dst) {
+    return adaptiveRouter.findBOEOutport(inport_dirn, src, dst);
 }
 
 std::string
@@ -250,7 +275,6 @@ Router::resetStats()
 
     crossbarSwitch.resetStats();
     switchAllocator.resetStats();
-    adaptiveRouter.resetStats();
 }
 
 void
