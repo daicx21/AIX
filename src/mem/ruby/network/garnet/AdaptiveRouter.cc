@@ -51,10 +51,16 @@ AdaptiveRouter::AdaptiveRouter(Router *router)
 }
 
 int 
+AdaptiveRouter::dirn_to_outport(int dirn)
+{
+    return m_router->ComputeOutportDirn2Idx(dirn_list[dirn]);
+}
+
+int 
 AdaptiveRouter::getValue(int outport)
 {
     if (not_init) {
-        init();
+        init(m_router->get_id());
         not_init = 0;
     }
     if (m_adaptive_algorithm==RANDOM_) return mt();
@@ -66,7 +72,7 @@ void
 AdaptiveRouter::setLoc(int x,int y)
 {
     if (not_init) {
-        init();
+        init(m_router->get_id());
         not_init = 0;
     }
     loc[x]=y;
@@ -76,7 +82,7 @@ void
 AdaptiveRouter::setCong(int x,int y)
 {
     if (not_init) {
-        init();
+        init(m_router->get_id());
         not_init = 0;
     }
     cong[x]=y;
@@ -86,10 +92,92 @@ int
 AdaptiveRouter::getCong(int x,int y)
 {
     if (not_init) {
-        init();
+        init(m_router->get_id());
         not_init = 0;
     }
     return weight[x][y]*cong[y];
+}
+
+int
+AdaptiveRouter::transport(int src, threeD_dirn dirn)
+{
+    std::vector<int> index = decode(src);
+    switch (dirn) {
+        case East0_:
+            index[0] ++; break;
+        case West0_:
+            index[0] --; break;
+        case East1_:
+            index[1] ++; break;
+        case West1_:
+            index[1] --; break;
+        case East2_:
+            index[2] ++; break;
+        case West2_:
+            index[2] --; break;
+    }
+
+    for (int i = 0; i < m_dimension; i++) {
+        if (index[i] < 0 || index[i] >= m_arys) {
+            return -1;
+        }
+    }
+
+    return encode(index);
+}
+
+bool
+AdaptiveRouter::is_allowed_dirn(int src, PortDirection inport_dirn, PortDirection outport_dirn)
+{
+    assert(outport_dirn != "Local");
+
+    if (inport_dirn == "Local") {
+        return true;
+    }
+
+    int in_radix = std::stoi(inport_dirn.substr(4));
+    int out_radix = std::stoi(outport_dirn.substr(4));
+
+    std::vector<int> index = decode(src);
+
+    if (in_radix == out_radix && inport_dirn == outport_dirn) {
+        return false;
+    }
+
+    if (index[2] & 1) {
+        if (index[0] & 1) {
+            if (in_radix == 1 && outport_dirn == "West0") {
+                return false;
+            }
+        }
+        else {
+            if (out_radix == 1 && inport_dirn == "West0") {
+                return false;
+            }
+        }
+
+        if ((in_radix != 2 && outport_dirn == "West2") || (out_radix != 2 && inport_dirn == "East2")) {
+            return false;
+        }
+    }
+    else {
+        if (index[1] & 1) {
+            if (in_radix == 0 && outport_dirn == "East1") {
+                return false;
+            }
+        }
+        else {
+            if (out_radix == 0 && inport_dirn == "East1") {
+                return false;
+            }
+        }
+
+        if ((in_radix != 2 && outport_dirn == "East2") || (out_radix != 2 && inport_dirn == "West2")) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 std::pair<int,int>
@@ -114,7 +202,7 @@ AdaptiveRouter::determinePlane(std::vector<int> src, std::vector<int> dst)
 }
 
 void
-AdaptiveRouter::init()
+AdaptiveRouter::init(int src)
 {
     num_routers = m_router->get_net_ptr()->getNumRouters();
     m_arys = (uint32_t)round(pow(num_routers, 1.0 / m_dimension));
@@ -163,12 +251,60 @@ AdaptiveRouter::init()
             }
         }
     }
+
+    for (int i = 0; i < 6; i++) {
+        computeMinimalRouting(src, i, dist[i]);
+    }
+}
+
+void 
+AdaptiveRouter::computeMinimalRouting(int src, int inport_dirn, Matrix &dist) {
+    std::queue<std::pair<int,int>> queue;
+
+    dist.clear();
+    dist.resize(num_routers);
+
+    for (int router = 0; router < num_routers; router++) {
+        dist[router].clear();
+        dist[router].resize(6);
+
+        for (int i = 0; i < 6; i++) {
+            dist[router][i] = INFINITE_;
+        }
+    }
+
+    for (int i = 0; i < 6; i++) {
+        dist[src][i] = 0;
+    }
+    
+    int dst = transport(src, (threeD_dirn) inport_dirn);
+    if (dst != -1) {
+        dist[dst][inport_dirn^1] = 1;
+        queue.push(std::make_pair(dst, inport_dirn^1));
+    }
+
+    while (!queue.empty()) {
+        std::pair<int,int> fr = queue.front();
+        queue.pop();
+
+        int cur = fr.first, inport = fr.second;
+
+        for (int i = 0; i < 6; i++) {
+            if (is_allowed_dirn(cur, dirn_list[inport], dirn_list[i])) {
+                int dst = transport(cur, (threeD_dirn) i);
+                if (dst != -1 && dist[dst][i^1] == INFINITE_) {
+                    dist[dst][i^1] = dist[cur][inport] + 1;
+                    queue.push(std::make_pair(dst, i^1));
+                }
+            }
+        } 
+    }
 }
 
 std::pair<std::string,int>
 AdaptiveRouter::findPlanarOutport(int src, int dst) {
     if (not_init) {
-        init();
+        init(src);
         not_init = 0;
     }
 
@@ -240,10 +376,67 @@ AdaptiveRouter::findPlanarOutport(int src, int dst) {
 std::string
 AdaptiveRouter::findBOEOutport(PortDirection inport_dirn, int src, int dst) {
     if (not_init) {
-        init();
+        init(src);
         not_init = 0;
     }
-    panic("%s placeholder executed", __FUNCTION__);
+
+    std::vector<int> candidates, min_dist;
+    int total_min = INFINITE_;
+
+    min_dist.resize(6);
+    for (int i = 0; i < 6; i++) {
+        min_dist[i] = INFINITE_;
+
+        if (is_allowed_dirn(src, inport_dirn, dirn_list[i])) {
+            int next_r = transport(src, (threeD_dirn) i);
+            if (next_r != -1) {
+                for (int j = 0; j < 6; j++) {
+                    if (dist[i][dst][j] < min_dist[i]) {
+                        min_dist[i] = dist[i][dst][j];
+                    }
+                }
+            }
+        }
+
+        if (min_dist[i] < total_min) {
+            total_min = min_dist[i];
+        }
+    }
+
+    if (total_min == INFINITE_)
+    {
+        std::cout << src << " " << dst << " " << inport_dirn << std::endl;
+        std::cout << dist[5][47][4] << std::endl;
+        std::cout << dist[5][46][0] << std::endl;
+        std::cout << dist[5][45][0] << std::endl;
+        std::cout << dist[5][44][0] << std::endl;
+        std::cout << dist[5][40][2] << std::endl;
+        std::cout << dist[5][36][2] << std::endl;
+        std::cout << dist[5][32][2] << std::endl;
+        std::cout << dist[5][16][4] << std::endl;
+        assert(0);
+    }
+    
+    for (int i = 0; i < 6; i++) {
+        if (min_dist[i] == total_min) {
+            candidates.emplace_back(i);
+        }
+    }
+
+    assert(!candidates.empty());
+    int pl = dirn_to_outport(candidates[0]), min_value = getValue(pl);
+
+    for (int i = 1; i < candidates.size(); i++) {
+        int pn = dirn_to_outport(candidates[i]);
+        int val = getValue(pn);
+
+        if (val < min_value) {
+            min_value = val;
+            pl = pn;
+        }
+    }
+
+    return m_router->ComputeOutportIdx2Dirn(pl);
 }
 
 } // namespace garnet

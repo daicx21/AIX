@@ -53,6 +53,7 @@ enum link_type { EXT_IN_, EXT_OUT_, INT_, NUM_LINK_TYPES_ };
 enum RoutingAlgorithm { TABLE_ = 0, XY_ = 1, CUSTOM_ = 2, RING_ = 3, PLANAR_ = 4, BOE_ = 5,
                         NUM_ROUTING_ALGORITHM_};
 enum AdaptiveAlgorithm { RANDOM_ = 0, LOCAL_ = 1, RCA_ = 2, NUM_ADAPTIVE_ALGORITHM_};
+enum threeD_dirn { East0_ = 0, West0_ = 1, East1_ = 2, West1_ = 3, East2_ =4, West2_ = 5, NUM_3D_DIRN_};
 
 struct RouteInfo
 {
