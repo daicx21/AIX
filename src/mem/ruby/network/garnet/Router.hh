@@ -165,6 +165,8 @@ class Router : public BasicRouter, public Consumer
 
     int ComputeInportDirn2Idx(PortDirection direction) { return routingUnit.ComputeInportDirn2Idx(direction); }
     int ComputeOutportDirn2Idx(PortDirection direction) { return routingUnit.ComputeOutportDirn2Idx(direction); }
+    PortDirection ComputeInportIdx2Dirn(int port) { return routingUnit.ComputeInportIdx2Dirn(port); }
+    PortDirection ComputeOutportIdx2Dirn(int port) { return routingUnit.ComputeOutportIdx2Dirn(port); }
 
   private:
     Cycles m_latency;

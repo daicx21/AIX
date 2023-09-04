@@ -102,7 +102,8 @@ class RoutingUnit
 
     int ComputeInportDirn2Idx(PortDirection port) { return m_inports_dirn2idx[port]; }
     int ComputeOutportDirn2Idx(PortDirection port) { return m_outports_dirn2idx[port]; }
-
+    PortDirection ComputeInportIdx2Dirn(int port) { return m_inports_idx2dirn[port]; }
+    PortDirection ComputeOutportIdx2Dirn(int port) { return m_outports_idx2dirn[port]; }
 
   private:
     Router *m_router;

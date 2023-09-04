@@ -37,6 +37,7 @@
 #include <utility>
 #include <string>
 #include <random>
+#include <queue>
 
 #include "mem/ruby/common/Consumer.hh"
 #include "mem/ruby/network/garnet/CommonTypes.hh"
@@ -62,7 +63,7 @@ class AdaptiveRouter : public Consumer
     AdaptiveRouter(Router *router);
     ~AdaptiveRouter() = default;
     void wakeup() {}
-    void init();
+    void init(int src);
     void print(std::ostream& out) const {};
 
     std::vector<int> decode(int node) {
@@ -82,12 +83,18 @@ class AdaptiveRouter : public Consumer
         return node;
     }
 
+    int dirn_to_outport(int dirn);
     int getValue(int outport);
     void setLoc(int x,int y);
     void setCong(int x,int y);
     int getCong(int x,int y);
 
+    int transport(int src, threeD_dirn dirn);
+    bool is_allowed_dirn(int src, PortDirection inport_dirn, PortDirection outport_dirn);
+
     std::pair<int,int> determinePlane(std::vector<int> src, std::vector<int> dst);
+    void computeMinimalRouting(int src, int inport_dirn, Matrix &dist);
+
     std::pair<std::string,int> findPlanarOutport(int src, int dst);
     std::string findBOEOutport(PortDirection inport_dirn, int src, int dst);
 
@@ -100,13 +107,14 @@ class AdaptiveRouter : public Consumer
     }
 
   private:
+    const PortDirection dirn_list[6] = {"East0", "West0", "East1", "West1", "East2", "West2"};
     Router *m_router;
     uint32_t num_routers;
     uint32_t m_dimension, m_arys;
     RoutingAlgorithm m_routing_algorithm;
     AdaptiveAlgorithm m_adaptive_algorithm;
     bool not_init,m_adaptive;
-    Matrix weight;
+    Matrix weight, dist[7];
     std::vector<int> cong,loc;
     std::mt19937 mt;
 };
