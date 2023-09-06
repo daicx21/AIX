@@ -359,6 +359,11 @@ AdaptiveRouter::findPlanarOutport(int src, int dst) {
         int pl = m_router->ComputeOutportDirn2Idx(str1);
         int ph = m_router->ComputeOutportDirn2Idx(str2);
 
+        bool label=(src_index[ind]>dst_index[ind]);
+
+        if (m_router->getOutputUnit(pl)->gao(2)>m_router->getOutputUnit(ph)->gao(label)) return std::make_pair(str1,2);
+        else return std::make_pair(str2,label);
+
         //std::cout << 8 << std::endl;
 
         if (getValue(pl)<getValue(ph)) {

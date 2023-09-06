@@ -71,6 +71,7 @@ class OutputUnit : public Consumer
     bool has_free_vc(int vnet, int label);
     bool isMatch(int out_vc, int label);
     int select_free_vc(int vnet, int label);
+    int gao(int label);
 
     inline PortDirection get_direction() { return m_direction; }
 

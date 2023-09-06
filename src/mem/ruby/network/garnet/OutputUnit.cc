@@ -159,6 +159,14 @@ OutputUnit::isMatch(int out_vc, int label)
     }
 }
 
+int
+OutputUnit::gao(int label)
+{
+    int ans=0;
+    for (int i=0;i<m_vc_per_vnet;i++) if (isMatch(i,label)) ans+=get_credit_count(i);
+    return ans;
+}
+
 /*
  * The wakeup function of the OutputUnit reads the credit signal from the
  * downstream router for the output VC (i.e., input VC at downstream router).

@@ -1,16 +1,7 @@
 
-<<<<<<< HEAD
-packets_injected = 237808                       (Count)
-packets_received = 237142                       (Count)
-average_packet_queueing_latency = 1183.403893                       (Cycle)
-average_packet_network_latency = 26.913655                       (Cycle)
-average_packet_latency = 1210.317548                       (Cycle)
-average_hops = 3.702963                       (Count)
-=======
-packets_injected = 317192                       (Count)
-packets_received = 316671                       (Count)
-average_packet_queueing_latency = 30.241295                       (Cycle)
-average_packet_network_latency = 15.317235                       (Cycle)
-average_packet_latency = 45.558529                       (Cycle)
-average_hops = 2.997922                       (Count)
->>>>>>> b89240d106ee8354cf6fdb14d7a58cce5abc9cba
+packets_injected = 255570                       (Count)
+packets_received = 255254                       (Count)
+average_packet_queueing_latency = 2.189744                       (Cycle)
+average_packet_network_latency = 12.739765                       (Cycle)
+average_packet_latency = 14.929509                       (Cycle)
+average_hops = 3.750997                       (Count)
