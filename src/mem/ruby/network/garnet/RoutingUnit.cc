@@ -197,6 +197,8 @@ RoutingUnit::outportCompute(RouteInfo route, int inport,
         case BOE_:     outport =
             std::make_pair(outportComputeBOE(route, inport, inport_dirn), -1); break;
         // any custom algorithm
+        case EVC_:     outport =
+            outportComputeEVC(route, inport, inport_dirn); break;
         case CUSTOM_: outport =
             std::make_pair(outportComputeCustom(route, inport, inport_dirn), -1); break;
         default: outport =
@@ -366,7 +368,7 @@ RoutingUnit::outportComputeBOE(RouteInfo route,
 }
 
 std::pair<int,int>
-RoutingUnit::outportComputeEVC(RouteInfo route, int vc, int inport, PortDirection inport_dirn)
+RoutingUnit::outportComputeEVC(RouteInfo route, int inport, PortDirection inport_dirn)
 {
     if (route.dest_router == m_router->get_id()) {
 
@@ -376,8 +378,6 @@ RoutingUnit::outportComputeEVC(RouteInfo route, int vc, int inport, PortDirectio
         std::pair<int,int> outport = std::make_pair(lookupRoutingTable(route.vnet, route.net_dest), -1);
         return outport;
     }
-
-    if (inport_dirn == "Local") vc=0;
 
     PortDirection outport_dirn = "Unknown";
     
@@ -395,7 +395,7 @@ RoutingUnit::outportComputeEVC(RouteInfo route, int vc, int inport, PortDirectio
     assert(dest_id >= 0);
     assert(dest_id < num_routers);
 
-    std::pair<PortDirection,int> query = m_router->findEVCOutport(my_id, dest_id, vc);
+    std::pair<PortDirection,int> query = m_router->findEVCOutport(my_id, dest_id);
     outport_dirn = query.first;
 
     return std::make_pair(m_outports_dirn2idx[outport_dirn], query.second);

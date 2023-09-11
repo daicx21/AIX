@@ -98,39 +98,12 @@ InputUnit::wakeup()
                 set_vc_active(vc, curTick());
             }
 
-            // Route computation for this vc
-            std::pair<int,int> outport;
-            if (!m_router->get_evc()) outport = m_router->route_compute(t_flit->get_route(), m_id, m_direction);
-            else outport = m_router->route_compute_evc(t_flit->get_route(), t_flit->get_vc(), m_id, m_direction);
-            t_flit->set_outport(outport.first);
-            t_flit->set_label(outport.second);
-            m_router->add_crossbar(outport.first,1);
-
-            // Update output port in VC
-            // All flits in this packet will use this output port
-            // The output port field in the flit is updated after it wins SA
-            if (is_empty) {
-                grant_outport(vc, outport.first);
-            }
-            
         }
         else if ((t_flit->get_type() == HEAD_) ||
             (t_flit->get_type() == HEAD_TAIL_)) {
 
             assert(virtualChannels[vc].get_state() == IDLE_);
             set_vc_active(vc, curTick());
-
-            // Route computation for this vc
-            std::pair<int,int> outport;
-            if (!m_router->get_evc()) outport = m_router->route_compute(t_flit->get_route(), m_id, m_direction);
-            else outport = m_router->route_compute_evc(t_flit->get_route(), t_flit->get_vc(), m_id, m_direction);
-
-            // Update output port in VC
-            // All flits in this packet will use this output port
-            // The output port field in the flit is updated after it wins SA
-            grant_outport(vc, outport.first);
-            t_flit->set_label(outport.second);
-            m_router->add_crossbar(outport.first,1);
 
         } else {
             assert(virtualChannels[vc].get_state() == ACTIVE_);

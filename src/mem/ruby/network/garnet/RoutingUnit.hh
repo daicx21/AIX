@@ -93,7 +93,7 @@ class RoutingUnit
 
     // Routing for EVC
     std::pair<int,int> outportComputeEVC(RouteInfo route,
-                         int vc, int inport,
+                         int inport,
                          PortDirection inport_dirn);
 
     // Custom Routing Algorithm using Port Directions

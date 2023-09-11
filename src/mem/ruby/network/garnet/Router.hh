@@ -97,7 +97,6 @@ class Router : public BasicRouter, public Consumer
     void setCong(int x,int y) { adaptiveRouter.setCong(x,y); }
 
     bool get_evc() { return m_evc; }
-    bool check_evc(int outport);
 
     void add_crossbar(int outport, int val) { cur_crossbar_demand[outport]+=val; }
     int get_crossbar(int outport) { return cur_crossbar_demand[outport]; }
@@ -140,13 +139,12 @@ class Router : public BasicRouter, public Consumer
     PortDirection getInportDirection(int inport);
 
     std::pair<int,int> route_compute(RouteInfo route, int inport, PortDirection direction);
-    std::pair<int,int> route_compute_evc(RouteInfo route, int vc, int inport, PortDirection direction);
     void grant_switch(int inport, flit *t_flit);
     void schedule_wakeup(Cycles time);
 
     std::pair<std::string,int> findPlanarOutport(int src, int dst);
     std::string findBOEOutport(PortDirection inport_dirn, int src, int dst);
-    std::pair<std::string,int> findEVCOutport(int src, int dst, int vc);
+    std::pair<std::string,int> findEVCOutport(int src, int dst);
 
     std::string getPortDirectionName(PortDirection direction);
     void printFaultVector(std::ostream& out);

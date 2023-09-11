@@ -463,7 +463,7 @@ AdaptiveRouter::findBOEOutport(PortDirection inport_dirn, int src, int dst) {
 }
 
 std::pair<std::string,int>
-AdaptiveRouter::findEVCOutport(int src, int dst, int vc) {
+AdaptiveRouter::findEVCOutport(int src, int dst) {
     if (not_init) {
         init(src);
         not_init = 0;
@@ -486,25 +486,22 @@ AdaptiveRouter::findEVCOutport(int src, int dst, int vc) {
 
     int mn=-1;
 
-    int mx=m_router->get_vc_per_vnet();
-
-    if (src_index[ind]<dst_index[ind]) res=std::make_pair("East"+std::to_string(ind),1);
-    else res=std::make_pair("West"+std::to_string(ind),1);
-
-    if (vc>=mx-1) return res;
-
     for (int i=0;i<m_dimension;i++) if (src_index[i]!=dst_index[i])
     {
         std::string str;
         if (src_index[i]<dst_index[i]) str="East"+std::to_string(i);
         else str="West"+std::to_string(i);
         int id=m_router->ComputeOutportDirn2Idx(str);
-        if (m_router->check_evc(id))
-        {
-            if (res.second==1) res=std::make_pair(str,0),mn=getValue(id);
-            else if (getValue(id)<mn) res=std::make_pair(str,0),mn=getValue(id);
-        }
+        bool flag=false;
+        if (i!=ind) flag=m_router->getOutputUnit(id)->has_free_vc(0,0);
+        else flag=m_router->getOutputUnit(id)->has_free_vc(0,-1);
+        if (i>ind&&!flag) continue;
+        if (mn==-1) res=std::make_pair(str,i),mn=getValue(id);
+        else if (getValue(id)<mn) res=std::make_pair(str,i),mn=getValue(id);
     }
+
+    if (res.second==ind) res.second=-1;
+    else res.second=0;
 
     return res;
 }

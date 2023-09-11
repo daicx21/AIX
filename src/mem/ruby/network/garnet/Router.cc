@@ -69,8 +69,6 @@ Router::init()
 
     switchAllocator.init();
     crossbarSwitch.init();
-    cur_crossbar_demand.resize(get_num_outports());
-    for (int i=0;i<get_num_outports();i++) cur_crossbar_demand[i]=0;
 }
 
 void
@@ -96,11 +94,15 @@ Router::wakeup()
 
     cur_input_vc.resize(m_input_unit.size());
     cur_is_free_signal.resize(m_input_unit.size());
+    
     for (int inport=0;inport<m_input_unit.size();inport++)
     {
         cur_input_vc[inport]=-1;
         cur_is_free_signal[inport]=false;
     }
+
+    cur_crossbar_demand.resize(get_num_outports());
+    for (int i=0;i<get_num_outports();i++) cur_crossbar_demand[i]=0;
 
     // Switch Allocation
     switchAllocator.wakeup();
@@ -188,12 +190,6 @@ Router::route_compute(RouteInfo route, int inport, PortDirection inport_dirn)
     return routingUnit.outportCompute(route, inport, inport_dirn);
 }
 
-std::pair<int, int>
-Router::route_compute_evc(RouteInfo route, int vc, int inport, PortDirection inport_dirn)
-{
-    return routingUnit.outportComputeEVC(route, vc, inport, inport_dirn);
-}
-
 void
 Router::grant_switch(int inport, flit *t_flit)
 {
@@ -218,16 +214,8 @@ Router::findBOEOutport(PortDirection inport_dirn, int src, int dst) {
 }
 
 std::pair<std::string, int>
-Router::findEVCOutport(int src, int dst, int vc) {
-    return adaptiveRouter.findEVCOutport(src, dst, vc);
-}
-
-bool
-Router::check_evc(int outport)
-{
-    bool flag=false;
-    for (int i=0;i<m_vc_per_vnet-1;i++) if (m_output_unit[outport]->has_credit(i)) flag=true;
-    return flag;
+Router::findEVCOutport(int src, int dst) {
+    return adaptiveRouter.findEVCOutport(src, dst);
 }
 
 std::string

@@ -115,7 +115,6 @@ SwitchAllocator::arbitrate_inports()
     // Independent arbiter at each input port
     for (int inport = 0; inport < m_num_inports; inport++) {
         if (m_wormhole) {
-            
             m_port_requests[inport] = -1;
         }
 
@@ -127,9 +126,15 @@ SwitchAllocator::arbitrate_inports()
             if (input_unit->need_stage(invc, SA_, curTick())) {
                 // This flit is in SA stage
 
-                int outport = input_unit->get_outport(invc);
-                int outvc = input_unit->get_outvc(invc);
-                int label = input_unit->peekTopFlit(invc)->get_label();
+                flit *t_flit = input_unit->peekTopFlit(invc);
+
+                std::pair<int,int> hh = m_router->route_compute(t_flit->get_route(), inport, m_router->getInportDirection(inport));
+
+                t_flit->set_label(hh.second);
+
+                int outport = hh.first;
+                int outvc = -1;
+                int label = hh.second;
 
                 // check if the flit in this InputVC is allowed to be sent
                 // send_allowed conditions described in that function.
@@ -140,7 +145,6 @@ SwitchAllocator::arbitrate_inports()
                     m_input_arbiter_activity++;
                     m_port_requests[inport] = outport;
                     m_vc_winners[inport] = invc;
-
                     break; // got one vc winner for this port
                 }
             }
@@ -186,12 +190,9 @@ SwitchAllocator::arbitrate_outports()
                 // grant this outport to this inport
                 int invc = m_vc_winners[inport];
 
-                int outvc = input_unit->get_outvc(invc);
                 int label = input_unit->peekTopFlit(invc)->get_label();
-                if (outvc == -1) {
-                    // VC Allocation - select any free VC from outport
-                    outvc = vc_allocate(outport, inport, invc, label);
-                }
+
+                int outvc = vc_allocate(outport, inport, invc, label);
 
                 // remove flit from Input VC
                 flit *t_flit = input_unit->getTopFlit(invc);
