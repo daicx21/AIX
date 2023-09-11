@@ -52,7 +52,8 @@ AdaptiveRouter::AdaptiveRouter(Router *router)
 
 int
 AdaptiveRouter::total_weight(int inport) {
-    return m_router->get_num_outports() - opposite[inport];
+    if (sum[inport]!=0) return sum[inport];
+    return 1;
 }
 
 int 
@@ -244,11 +245,10 @@ AdaptiveRouter::init(int src)
     {
         cong.clear();
         cong.resize(m);
+        sum.resize(m);
         for (int i = 0; i < m; i++) cong[i] = 0;
         weight.clear();
         weight.resize(n);
-        opposite.clear();
-        opposite.resize(n);
         for (int i = 0; i < n; i++)
         {
             weight[i].resize(m);
@@ -256,7 +256,7 @@ AdaptiveRouter::init(int src)
             {
                 weight[i][j] = 0;
             }
-            opposite[i] = 0;
+            sum[i] = 0;
         }
         std::vector<int> src=decode(m_router->get_id());
         for (int i = 0; i < m_dimension; i++)
@@ -267,17 +267,17 @@ AdaptiveRouter::init(int src)
             {
                 PortDirection Outport1="West"+std::to_string(j),Outport2="East"+std::to_string(j);
                 int id3=m_router->ComputeOutportDirn2Idx(Outport1),id4=m_router->ComputeOutportDirn2Idx(Outport2);
-                if (src[i]>0&&src[j]>0) weight[id1][id3]=1;
-                if (src[i]>0&&src[j]<m_arys-1) weight[id1][id4]=1;
-                if (src[i]<m_arys-1&&src[j]>0) weight[id2][id3]=1;
-                if (src[i]<m_arys-1&&src[j]<m_arys-1) weight[id2][id4]=1;
+                if (src[i]>0&&src[j]>0) weight[id1][id3]=1,sum[id1]+=1;
+                if (src[i]>0&&src[j]<m_arys-1) weight[id1][id4]=1,sum[id1]+=1;
+                if (src[i]<m_arys-1&&src[j]>0) weight[id2][id3]=1,sum[id2]+=1;
+                if (src[i]<m_arys-1&&src[j]<m_arys-1) weight[id2][id4]=1,sum[id2]+=1;
             }
             if (src[i]>0&&src[i]<m_arys-1)
             {
                 weight[id1][m_router->ComputeOutportDirn2Idx(Inport2)]=2;
                 weight[id2][m_router->ComputeOutportDirn2Idx(Inport1)]=2;
-                opposite[id1] = 1;
-                opposite[id2] = 1;
+                sum[id1] += 2;
+                sum[id2] += 2;
             }
         }
     }

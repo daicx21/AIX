@@ -117,8 +117,7 @@ class AdaptiveRouter : public Consumer
     AdaptiveAlgorithm m_adaptive_algorithm;
     bool not_init,m_adaptive;
     Matrix weight, dist[8];
-    std::vector<int> cong,loc;
-    std::vector<bool> opposite;
+    std::vector<int> cong,loc,sum;
     std::mt19937 mt;
 };
 
