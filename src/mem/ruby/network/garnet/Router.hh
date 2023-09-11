@@ -96,6 +96,9 @@ class Router : public BasicRouter, public Consumer
     void setLoc(int x,int y) { adaptiveRouter.setLoc(x,y); }
     void setCong(int x,int y) { adaptiveRouter.setCong(x,y); }
 
+    bool get_evc() { return m_evc; }
+    bool check_evc(int outport);
+
     void init_net_ptr(GarnetNetwork* net_ptr)
     {
         m_network_ptr = net_ptr;
@@ -103,7 +106,8 @@ class Router : public BasicRouter, public Consumer
             (RoutingAlgorithm) net_ptr->getRoutingAlgorithm();
         AdaptiveAlgorithm adaptive_algorithm = 
             (AdaptiveAlgorithm) net_ptr->getAdaptiveAlgorithm();
-        m_adaptive = (routing_algorithm == PLANAR_) || (routing_algorithm == BOE_);
+        m_adaptive = (routing_algorithm == PLANAR_) || (routing_algorithm == BOE_) || (routing_algorithm == EVC_);
+        m_evc = (routing_algorithm == EVC_);
         if (m_adaptive) {
             if (routing_algorithm == BOE_) assert(m_dimension == 3 || m_dimension == 4);
             adaptiveRouter.set_adaptive(routing_algorithm, adaptive_algorithm);
@@ -133,11 +137,13 @@ class Router : public BasicRouter, public Consumer
     PortDirection getInportDirection(int inport);
 
     std::pair<int,int> route_compute(RouteInfo route, int inport, PortDirection direction);
+    std::pair<int,int> route_compute_evc(RouteInfo route, int vc, int inport, PortDirection direction);
     void grant_switch(int inport, flit *t_flit);
     void schedule_wakeup(Cycles time);
 
     std::pair<std::string,int> findPlanarOutport(int src, int dst);
     std::string findBOEOutport(PortDirection inport_dirn, int src, int dst);
+    std::pair<std::string,int> findEVCOutport(int src, int dst, int vc);
 
     std::string getPortDirectionName(PortDirection direction);
     void printFaultVector(std::ostream& out);
@@ -172,7 +178,7 @@ class Router : public BasicRouter, public Consumer
     Cycles m_latency;
     uint32_t m_virtual_networks, m_vc_per_vnet, m_num_vcs;
     uint32_t m_bit_width, m_dimension;
-    bool m_wormhole, m_adaptive;
+    bool m_wormhole, m_adaptive, m_evc;
     GarnetNetwork *m_network_ptr;
 
     RoutingUnit routingUnit;

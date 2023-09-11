@@ -146,13 +146,18 @@ bool
 OutputUnit::isMatch(int out_vc, int label)
 {
     if (label != -1) {
-        int block = (m_vc_per_vnet / 3);
-        int belong = (out_vc % m_vc_per_vnet) / block;
-        if (belong > 2) {
-            belong = 2;
-        }
+        if (!m_router->get_evc())
+        {
+            int block = (m_vc_per_vnet / 3);
+            int belong = (out_vc % m_vc_per_vnet) / block;
+            if (belong > 2) {
+                belong = 2;
+            }
 
-        return label == belong;
+            return label == belong;
+        }
+        if (label==0) return (out_vc<m_router->get_vc_per_vnet()-1);
+        else return (out_vc==m_router->get_vc_per_vnet()-1);
     }
     else {
         return true;

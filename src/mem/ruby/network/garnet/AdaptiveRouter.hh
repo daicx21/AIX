@@ -98,10 +98,11 @@ class AdaptiveRouter : public Consumer
 
     std::pair<std::string,int> findPlanarOutport(int src, int dst);
     std::string findBOEOutport(PortDirection inport_dirn, int src, int dst);
+    std::pair<std::string,int> findEVCOutport(int src, int dst, int vc);
 
     void set_adaptive(RoutingAlgorithm routing_algorithm, AdaptiveAlgorithm adaptive_algorithm)
     {
-        m_adaptive = (routing_algorithm == PLANAR_) || (routing_algorithm == BOE_);
+        m_adaptive = (routing_algorithm == PLANAR_) || (routing_algorithm == BOE_) || (routing_algorithm == EVC_);
         m_routing_algorithm = routing_algorithm;
         m_adaptive_algorithm = adaptive_algorithm;
         not_init = true;

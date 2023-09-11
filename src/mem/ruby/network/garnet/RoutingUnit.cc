@@ -365,6 +365,42 @@ RoutingUnit::outportComputeBOE(RouteInfo route,
     return m_outports_dirn2idx[outport_dirn];
 }
 
+std::pair<int,int>
+RoutingUnit::outportComputeEVC(RouteInfo route, int vc, int inport, PortDirection inport_dirn)
+{
+    if (route.dest_router == m_router->get_id()) {
+
+        // Multiple NIs may be connected to this router,
+        // all with output port direction = "Local"
+        // Get exact outport id from table
+        std::pair<int,int> outport = std::make_pair(lookupRoutingTable(route.vnet, route.net_dest), -1);
+        return outport;
+    }
+
+    if (inport_dirn == "Local") vc=0;
+
+    PortDirection outport_dirn = "Unknown";
+    
+    int num_routers = m_router->get_net_ptr()->getNumRouters();
+    assert(num_routers > 0);
+
+    int my_id = m_router->get_id();
+
+    int dest_id = route.dest_router;
+
+    // already checked that in outportCompute() function
+    assert(my_id != dest_id);
+    assert(my_id >= 0);
+    assert(my_id < num_routers);
+    assert(dest_id >= 0);
+    assert(dest_id < num_routers);
+
+    std::pair<PortDirection,int> query = m_router->findEVCOutport(my_id, dest_id, vc);
+    outport_dirn = query.first;
+
+    return std::make_pair(m_outports_dirn2idx[outport_dirn], query.second);
+}
+
 // Template for implementing custom routing algorithm
 // using port directions. (Example adaptive)
 int

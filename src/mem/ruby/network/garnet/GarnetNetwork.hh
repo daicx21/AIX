@@ -85,7 +85,7 @@ class GarnetNetwork : public Network
     uint32_t getBuffersPerCtrlVC() { return m_buffers_per_ctrl_vc; }
     int getRoutingAlgorithm() const { return m_routing_algorithm; }
     int getAdaptiveAlgorithm() const { return m_adaptive_algorithm; }
-    bool getAdaptive() const { return (m_routing_algorithm==4)||(m_routing_algorithm==5); }
+    bool getAdaptive() const { return (m_routing_algorithm==4)||(m_routing_algorithm==5)||(m_routing_algorithm==6); }
 
     bool isFaultModelEnabled() const { return m_enable_fault_model; }
     FaultModel* fault_model;

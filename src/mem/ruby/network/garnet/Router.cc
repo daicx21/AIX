@@ -186,6 +186,12 @@ Router::route_compute(RouteInfo route, int inport, PortDirection inport_dirn)
     return routingUnit.outportCompute(route, inport, inport_dirn);
 }
 
+std::pair<int, int>
+Router::route_compute_evc(RouteInfo route, int vc, int inport, PortDirection inport_dirn)
+{
+    return routingUnit.outportComputeEVC(route, vc, inport, inport_dirn);
+}
+
 void
 Router::grant_switch(int inport, flit *t_flit)
 {
@@ -207,6 +213,19 @@ Router::findPlanarOutport(int src, int dst) {
 std::string
 Router::findBOEOutport(PortDirection inport_dirn, int src, int dst) {
     return adaptiveRouter.findBOEOutport(inport_dirn, src, dst);
+}
+
+std::pair<std::string, int>
+Router::findEVCOutport(int src, int dst, int vc) {
+    return adaptiveRouter.findEVCOutport(src, dst, vc);
+}
+
+bool
+Router::check_evc(int outport)
+{
+    bool flag=false;
+    for (int i=0;i<m_vc_per_vnet-1;i++) if (m_output_unit[outport]->has_credit(i)) flag=true;
+    return flag;
 }
 
 std::string

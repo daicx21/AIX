@@ -46,7 +46,7 @@ namespace garnet
 
 AdaptiveRouter::AdaptiveRouter(Router *router)
   : Consumer(router), m_router(router), m_dimension(m_router->get_dimension()),
-    m_adaptive(false),not_init(true)
+    not_init(true),m_adaptive(false)
 {
 }
 
@@ -460,6 +460,53 @@ AdaptiveRouter::findBOEOutport(PortDirection inport_dirn, int src, int dst) {
     }
 
     return m_router->ComputeOutportIdx2Dirn(pl);
+}
+
+std::pair<std::string,int>
+AdaptiveRouter::findEVCOutport(int src, int dst, int vc) {
+    if (not_init) {
+        init(src);
+        not_init = 0;
+    }
+
+    assert(src != dst);
+
+    std::vector<int> src_index = decode(src);
+    std::vector<int> dst_index = decode(dst);
+
+    int ind = -1;
+    for (int i = 0; i < m_dimension; i++) {
+        if (src_index[i] != dst_index[i]) {
+            ind = i;
+            break;
+        }
+    }
+
+    std::pair<std::string,int> res;
+
+    int mn=-1;
+
+    int mx=m_router->get_vc_per_vnet();
+
+    if (src_index[ind]<dst_index[ind]) res=std::make_pair("East"+std::to_string(ind),1);
+    else res=std::make_pair("West"+std::to_string(ind),1);
+
+    if (vc==mx-1) return res;
+
+    for (int i=0;i<m_dimension;i++) if (src_index[i]!=dst_index[i])
+    {
+        std::string str;
+        if (src_index[i]<dst_index[i]) str="East"+std::to_string(i);
+        else str="West"+std::to_string(i);
+        int id=m_router->ComputeOutportDirn2Idx(str);
+        if (m_router->check_evc(id))
+        {
+            if (res.second==1) res=std::make_pair(str,0),mn=getValue(id);
+            else if (getValue(id)<mn) res=std::make_pair(str,0),mn=getValue(id);
+        }
+    }
+
+    return res;
 }
 
 } // namespace garnet
