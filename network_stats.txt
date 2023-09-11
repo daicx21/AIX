@@ -1,7 +1,7 @@
 
-packets_injected = 313863                       (Count)
-packets_received = 313336                       (Count)
-average_packet_queueing_latency = 88.596130                       (Cycle)
-average_packet_network_latency = 15.659219                       (Cycle)
-average_packet_latency = 104.255349                       (Cycle)
-average_hops = 3.757356                       (Count)
+packets_injected = 99232                       (Count)
+packets_received = 99115                       (Count)
+average_packet_queueing_latency = 2.000111                       (Cycle)
+average_packet_network_latency = 10.959381                       (Cycle)
+average_packet_latency = 12.959491                       (Cycle)
+average_hops = 3.742693                       (Count)

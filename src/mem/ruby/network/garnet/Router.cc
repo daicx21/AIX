@@ -101,9 +101,6 @@ Router::wakeup()
         cur_is_free_signal[inport]=false;
     }
 
-    cur_crossbar_demand.resize(get_num_outports());
-    for (int i=0;i<get_num_outports();i++) cur_crossbar_demand[i]=0;
-
     // Switch Allocation
     switchAllocator.wakeup();
 

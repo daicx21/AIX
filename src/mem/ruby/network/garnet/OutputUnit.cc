@@ -199,7 +199,7 @@ OutputUnit::wakeup()
 
         if (m_router->get_net_ptr()->getAdaptive())
         {
-            int now=m_router->get_crossbar(m_id);
+            int now=0;
             for (int vc=0;vc<m_vc_per_vnet;vc++) if (is_not_empty(vc)) now++;
             m_router->setLoc(m_id,now);
             if (m_router->get_net_ptr()->getAdaptiveAlgorithm()==2)

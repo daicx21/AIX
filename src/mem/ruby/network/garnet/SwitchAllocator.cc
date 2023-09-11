@@ -190,12 +190,12 @@ SwitchAllocator::arbitrate_outports()
                 // grant this outport to this inport
                 int invc = m_vc_winners[inport];
 
-                int label = input_unit->peekTopFlit(invc)->get_label();
-
-                int outvc = vc_allocate(outport, inport, invc, label);
-
                 // remove flit from Input VC
                 flit *t_flit = input_unit->getTopFlit(invc);
+
+                int label = t_flit->get_label();
+
+                int outvc = vc_allocate(outport, inport, invc, label);
 
                 DPRINTF(RubyNetwork, "SwitchAllocator at Router %d "
                                      "granted outvc %d at outport %d "
@@ -241,11 +241,8 @@ SwitchAllocator::arbitrate_outports()
                     else {
 
                         flit *next_flit = input_unit->peekTopFlit(invc);
-                        input_unit->grant_outport(invc, next_flit->get_outport());
-                        input_unit->grant_outvc(invc, -1);
                         input_unit->increment_credit(invc, false, curTick());
                     }
-                    m_router->add_crossbar(outport,-1);
                 }
                 else if ((t_flit->get_type() == TAIL_) ||
                     t_flit->get_type() == HEAD_TAIL_) {
@@ -259,7 +256,6 @@ SwitchAllocator::arbitrate_outports()
                     // Send a credit back
                     // along with the information that this VC is now idle
                     input_unit->increment_credit(invc, true, curTick());
-                    m_router->add_crossbar(outport,-1);
                 } else {
                     // Send a credit back
                     // but do not indicate that the VC is idle
