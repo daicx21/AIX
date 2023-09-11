@@ -104,6 +104,7 @@ InputUnit::wakeup()
             else outport = m_router->route_compute_evc(t_flit->get_route(), t_flit->get_vc(), m_id, m_direction);
             t_flit->set_outport(outport.first);
             t_flit->set_label(outport.second);
+            m_router->add_crossbar(outport.first,1);
 
             // Update output port in VC
             // All flits in this packet will use this output port
@@ -129,6 +130,7 @@ InputUnit::wakeup()
             // The output port field in the flit is updated after it wins SA
             grant_outport(vc, outport.first);
             t_flit->set_label(outport.second);
+            m_router->add_crossbar(outport.first,1);
 
         } else {
             assert(virtualChannels[vc].get_state() == ACTIVE_);

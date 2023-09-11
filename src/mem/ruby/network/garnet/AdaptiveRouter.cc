@@ -491,7 +491,7 @@ AdaptiveRouter::findEVCOutport(int src, int dst, int vc) {
     if (src_index[ind]<dst_index[ind]) res=std::make_pair("East"+std::to_string(ind),1);
     else res=std::make_pair("West"+std::to_string(ind),1);
 
-    if (vc==mx-1) return res;
+    if (vc>=mx-1) return res;
 
     for (int i=0;i<m_dimension;i++) if (src_index[i]!=dst_index[i])
     {

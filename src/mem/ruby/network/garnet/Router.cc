@@ -69,6 +69,8 @@ Router::init()
 
     switchAllocator.init();
     crossbarSwitch.init();
+    cur_crossbar_demand.resize(get_num_outports());
+    for (int i=0;i<get_num_outports();i++) cur_crossbar_demand[i]=0;
 }
 
 void

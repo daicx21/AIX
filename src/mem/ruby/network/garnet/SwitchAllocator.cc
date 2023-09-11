@@ -244,6 +244,7 @@ SwitchAllocator::arbitrate_outports()
                         input_unit->grant_outvc(invc, -1);
                         input_unit->increment_credit(invc, false, curTick());
                     }
+                    m_router->add_crossbar(outport,-1);
                 }
                 else if ((t_flit->get_type() == TAIL_) ||
                     t_flit->get_type() == HEAD_TAIL_) {
@@ -257,6 +258,7 @@ SwitchAllocator::arbitrate_outports()
                     // Send a credit back
                     // along with the information that this VC is now idle
                     input_unit->increment_credit(invc, true, curTick());
+                    m_router->add_crossbar(outport,-1);
                 } else {
                     // Send a credit back
                     // but do not indicate that the VC is idle

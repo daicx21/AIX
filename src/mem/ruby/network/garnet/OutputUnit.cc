@@ -157,7 +157,7 @@ OutputUnit::isMatch(int out_vc, int label)
             return label == belong;
         }
         if (label==0) return (out_vc<m_router->get_vc_per_vnet()-1);
-        else return (out_vc==m_router->get_vc_per_vnet()-1);
+        else return (out_vc>=m_router->get_vc_per_vnet()-1);
     }
     else {
         return true;
@@ -199,7 +199,7 @@ OutputUnit::wakeup()
 
         if (m_router->get_net_ptr()->getAdaptive())
         {
-            int now=0;
+            int now=m_router->get_crossbar(m_id);
             for (int vc=0;vc<m_vc_per_vnet;vc++) if (is_not_empty(vc)) now++;
             m_router->setLoc(m_id,now);
             if (m_router->get_net_ptr()->getAdaptiveAlgorithm()==2)

@@ -99,6 +99,9 @@ class Router : public BasicRouter, public Consumer
     bool get_evc() { return m_evc; }
     bool check_evc(int outport);
 
+    void add_crossbar(int outport, int val) { cur_crossbar_demand[outport]+=val; }
+    int get_crossbar(int outport) { return cur_crossbar_demand[outport]; }
+
     void init_net_ptr(GarnetNetwork* net_ptr)
     {
         m_network_ptr = net_ptr;
@@ -189,6 +192,7 @@ class Router : public BasicRouter, public Consumer
 
     std::vector<int> cur_input_vc;
     std::vector<bool> cur_is_free_signal;
+    std::vector<int> cur_crossbar_demand;
 
     std::vector<std::shared_ptr<InputUnit>> m_input_unit;
     std::vector<std::shared_ptr<OutputUnit>> m_output_unit;
