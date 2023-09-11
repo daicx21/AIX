@@ -58,6 +58,7 @@ parser.add_argument(
         "shuffle",
         "transpose",
         "transpose3d",
+        "dimension_reverse3d",
     ],
 )
 

@@ -242,6 +242,12 @@ GarnetSyntheticTraffic::generatePkt()
         int dest_y = (id / radix) % radix;
         int dest_z = (id / radix) / radix;
         destination = dest_y + dest_z * radix + dest_x * radix * radix;
+    } else if (traffic == DIMENSION_REVERSE3D_) {
+        int radix = (int)round(pow(num_destinations, 1.0 / 3));
+        int dest_x = id % radix;
+        int dest_y = (id / radix) % radix;
+        int dest_z = (id / radix) / radix;
+        destination = dest_y + dest_x * radix + (radix - dest_z - 1) * radix * radix;
     }
     else {
         fatal("Unknown Traffic Type: %s!\n", traffic);
@@ -341,6 +347,7 @@ GarnetSyntheticTraffic::initTrafficType()
     trafficStringToEnum["transpose"] = TRANSPOSE_;
     trafficStringToEnum["uniform_random"] = UNIFORM_RANDOM_;
     trafficStringToEnum["transpose3d"] = TRANSPOSE3D_;
+    trafficStringToEnum["dimension_reverse3d"] = DIMENSION_REVERSE3D_;
 }
 
 void

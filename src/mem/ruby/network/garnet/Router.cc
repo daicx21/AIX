@@ -112,7 +112,7 @@ Router::wakeup()
         if (m_adaptive&&get_net_ptr()->getAdaptiveAlgorithm()==2)
         {
             for (int outport=0;outport<m_output_unit.size();outport++) now+=adaptiveRouter.getCong(inport,outport);
-            now/=4*(m_dimension-1);
+            now/=adaptiveRouter.total_weight(inport);
         }
         m_input_unit[inport]->send_credit(cur_input_vc[inport], cur_is_free_signal[inport], curTick(), now);
     }

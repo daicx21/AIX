@@ -164,7 +164,7 @@ OutputUnit::gao(int label)
 {
     int ans=0;
     for (int i=0;i<m_vc_per_vnet;i++) if (isMatch(i,label)) ans+=get_credit_count(i);
-    return ans;
+    return ans<<5;
 }
 
 /*

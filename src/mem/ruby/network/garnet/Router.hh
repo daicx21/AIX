@@ -105,7 +105,7 @@ class Router : public BasicRouter, public Consumer
             (AdaptiveAlgorithm) net_ptr->getAdaptiveAlgorithm();
         m_adaptive = (routing_algorithm == PLANAR_) || (routing_algorithm == BOE_);
         if (m_adaptive) {
-            if (routing_algorithm == BOE_) assert(m_dimension == 3);
+            if (routing_algorithm == BOE_) assert(m_dimension == 3 || m_dimension == 4);
             adaptiveRouter.set_adaptive(routing_algorithm, adaptive_algorithm);
         }
     }

@@ -50,6 +50,11 @@ AdaptiveRouter::AdaptiveRouter(Router *router)
 {
 }
 
+int
+AdaptiveRouter::total_weight(int inport) {
+    return m_router->get_num_outports() - opposite[inport];
+}
+
 int 
 AdaptiveRouter::dirn_to_outport(int dirn)
 {
@@ -99,7 +104,7 @@ AdaptiveRouter::getCong(int x,int y)
 }
 
 int
-AdaptiveRouter::transport(int src, threeD_dirn dirn)
+AdaptiveRouter::transport(int src, fourD_dirn dirn)
 {
     std::vector<int> index = decode(src);
     switch (dirn) {
@@ -115,6 +120,10 @@ AdaptiveRouter::transport(int src, threeD_dirn dirn)
             index[2] ++; break;
         case West2_:
             index[2] --; break;
+        case East3_:
+            index[3] ++; break;
+        case West3_:
+            index[3] --; break;
     }
 
     for (int i = 0; i < m_dimension; i++) {
@@ -144,7 +153,23 @@ AdaptiveRouter::is_allowed_dirn(int src, PortDirection inport_dirn, PortDirectio
         return false;
     }
 
-    if (index[2] & 1) {
+    bool is_flip = 0;
+
+    if (m_dimension == 4) {
+        if (index[3] & 1) {
+            if ((in_radix <= 2 && outport_dirn == "West3") || (out_radix <= 2 && inport_dirn == "East3")) {
+                return false;
+            }
+        }
+        else {
+            is_flip = 1;
+            if ((in_radix <= 2 && outport_dirn == "East3") || (out_radix <= 2 && inport_dirn == "West3")) {
+                return false;
+            }
+        }
+    }
+
+    if ((index[2] & 1) ^ is_flip) {
         if (index[0] & 1) {
             if (in_radix == 1 && outport_dirn == "West0") {
                 return false;
@@ -156,7 +181,7 @@ AdaptiveRouter::is_allowed_dirn(int src, PortDirection inport_dirn, PortDirectio
             }
         }
 
-        if ((in_radix != 2 && outport_dirn == "West2") || (out_radix != 2 && inport_dirn == "East2")) {
+        if ((in_radix <= 1 && outport_dirn == "West2") || (out_radix <= 1 && inport_dirn == "East2")) {
             return false;
         }
     }
@@ -172,7 +197,7 @@ AdaptiveRouter::is_allowed_dirn(int src, PortDirection inport_dirn, PortDirectio
             }
         }
 
-        if ((in_radix != 2 && outport_dirn == "East2") || (out_radix != 2 && inport_dirn == "West2")) {
+        if ((in_radix <= 1 && outport_dirn == "East2") || (out_radix <= 1 && inport_dirn == "West2")) {
             return false;
         }
     }
@@ -222,6 +247,8 @@ AdaptiveRouter::init(int src)
         for (int i = 0; i < m; i++) cong[i] = 0;
         weight.clear();
         weight.resize(n);
+        opposite.clear();
+        opposite.resize(n);
         for (int i = 0; i < n; i++)
         {
             weight[i].resize(m);
@@ -229,6 +256,7 @@ AdaptiveRouter::init(int src)
             {
                 weight[i][j] = 0;
             }
+            opposite[i] = 0;
         }
         std::vector<int> src=decode(m_router->get_id());
         for (int i = 0; i < m_dimension; i++)
@@ -246,14 +274,18 @@ AdaptiveRouter::init(int src)
             }
             if (src[i]>0&&src[i]<m_arys-1)
             {
-                weight[id1][m_router->ComputeOutportDirn2Idx(Inport2)]=2*(m_dimension-1);
-                weight[id2][m_router->ComputeOutportDirn2Idx(Inport1)]=2*(m_dimension-1);
+                weight[id1][m_router->ComputeOutportDirn2Idx(Inport2)]=2;
+                weight[id2][m_router->ComputeOutportDirn2Idx(Inport1)]=2;
+                opposite[id1] = 1;
+                opposite[id2] = 1;
             }
         }
     }
 
-    for (int i = 0; i < 6; i++) {
-        computeMinimalRouting(src, i, dist[i]);
+    if (m_dimension == 3 || m_dimension == 4) {
+        for (int i = 0; i < 2*m_dimension; i++) {
+            computeMinimalRouting(src, i, dist[i]);
+        }
     }
 }
 
@@ -266,18 +298,18 @@ AdaptiveRouter::computeMinimalRouting(int src, int inport_dirn, Matrix &dist) {
 
     for (int router = 0; router < num_routers; router++) {
         dist[router].clear();
-        dist[router].resize(6);
+        dist[router].resize(2*m_dimension);
 
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 2*m_dimension; i++) {
             dist[router][i] = INFINITE_;
         }
     }
 
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 2*m_dimension; i++) {
         dist[src][i] = 0;
     }
     
-    int dst = transport(src, (threeD_dirn) inport_dirn);
+    int dst = transport(src, (fourD_dirn) inport_dirn);
     if (dst != -1) {
         dist[dst][inport_dirn^1] = 1;
         queue.push(std::make_pair(dst, inport_dirn^1));
@@ -289,9 +321,9 @@ AdaptiveRouter::computeMinimalRouting(int src, int inport_dirn, Matrix &dist) {
 
         int cur = fr.first, inport = fr.second;
 
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 2*m_dimension; i++) {
             if (is_allowed_dirn(cur, dirn_list[inport], dirn_list[i])) {
-                int dst = transport(cur, (threeD_dirn) i);
+                int dst = transport(cur, (fourD_dirn) i);
                 if (dst != -1 && dist[dst][i^1] == INFINITE_) {
                     dist[dst][i^1] = dist[cur][inport] + 1;
                     queue.push(std::make_pair(dst, i^1));
@@ -329,13 +361,15 @@ AdaptiveRouter::findPlanarOutport(int src, int dst) {
 
     assert(src_index[ind] != dst_index[ind]);
 
+    int along = ((ind == 0) ? -1 : 2);
+
     if (ind == m_dimension - 1 || src_index[ind + 1] == dst_index[ind + 1]) {
         //std::cout << 4 << std::endl;
         if (src_index[ind] < dst_index[ind]) {
-            return std::make_pair("East" + std::to_string(ind), 2);
+            return std::make_pair("East" + std::to_string(ind), along);
         }
         else {
-            return std::make_pair("West" + std::to_string(ind), 2);
+            return std::make_pair("West" + std::to_string(ind), along);
         }
     }
     else {
@@ -361,18 +395,14 @@ AdaptiveRouter::findPlanarOutport(int src, int dst) {
 
         bool label=(src_index[ind]>dst_index[ind]);
 
-        if (m_router->getOutputUnit(pl)->gao(2)>m_router->getOutputUnit(ph)->gao(label)) return std::make_pair(str1,2);
-        else return std::make_pair(str2,label);
-
         //std::cout << 8 << std::endl;
 
-        if (getValue(pl)<getValue(ph)) {
+        if (/*getValue(pl)+*/m_router->getOutputUnit(ph)->gao(label)</*getValue(ph)+*/m_router->getOutputUnit(pl)->gao(along)) {
             //std::cout << 9 << std::endl;
-            return std::make_pair(str1, 2);
+            return std::make_pair(str1, along);
         }
         else {
             //std::cout << 10 << std::endl;
-            bool label = (src_index[ind] > dst_index[ind]);
             return std::make_pair(str2, label);
         }
     }
@@ -388,14 +418,14 @@ AdaptiveRouter::findBOEOutport(PortDirection inport_dirn, int src, int dst) {
     std::vector<int> candidates, min_dist;
     int total_min = INFINITE_;
 
-    min_dist.resize(6);
-    for (int i = 0; i < 6; i++) {
+    min_dist.resize(2*m_dimension);
+    for (int i = 0; i < 2*m_dimension; i++) {
         min_dist[i] = INFINITE_;
 
         if (is_allowed_dirn(src, inport_dirn, dirn_list[i])) {
-            int next_r = transport(src, (threeD_dirn) i);
+            int next_r = transport(src, (fourD_dirn) i);
             if (next_r != -1) {
-                for (int j = 0; j < 6; j++) {
+                for (int j = 0; j < 2*m_dimension; j++) {
                     if (dist[i][dst][j] < min_dist[i]) {
                         min_dist[i] = dist[i][dst][j];
                     }
@@ -408,21 +438,9 @@ AdaptiveRouter::findBOEOutport(PortDirection inport_dirn, int src, int dst) {
         }
     }
 
-    if (total_min == INFINITE_)
-    {
-        std::cout << src << " " << dst << " " << inport_dirn << std::endl;
-        std::cout << dist[5][47][4] << std::endl;
-        std::cout << dist[5][46][0] << std::endl;
-        std::cout << dist[5][45][0] << std::endl;
-        std::cout << dist[5][44][0] << std::endl;
-        std::cout << dist[5][40][2] << std::endl;
-        std::cout << dist[5][36][2] << std::endl;
-        std::cout << dist[5][32][2] << std::endl;
-        std::cout << dist[5][16][4] << std::endl;
-        assert(0);
-    }
+    assert(total_min < INFINITE_);
     
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 2*m_dimension; i++) {
         if (min_dist[i] == total_min) {
             candidates.emplace_back(i);
         }

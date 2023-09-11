@@ -83,13 +83,14 @@ class AdaptiveRouter : public Consumer
         return node;
     }
 
+    int total_weight(int inport);
     int dirn_to_outport(int dirn);
     int getValue(int outport);
     void setLoc(int x,int y);
     void setCong(int x,int y);
     int getCong(int x,int y);
 
-    int transport(int src, threeD_dirn dirn);
+    int transport(int src, fourD_dirn dirn);
     bool is_allowed_dirn(int src, PortDirection inport_dirn, PortDirection outport_dirn);
 
     std::pair<int,int> determinePlane(std::vector<int> src, std::vector<int> dst);
@@ -107,15 +108,16 @@ class AdaptiveRouter : public Consumer
     }
 
   private:
-    const PortDirection dirn_list[6] = {"East0", "West0", "East1", "West1", "East2", "West2"};
+    const PortDirection dirn_list[8] = {"East0", "West0", "East1", "West1", "East2", "West2", "East3", "West3"};
     Router *m_router;
     uint32_t num_routers;
     uint32_t m_dimension, m_arys;
     RoutingAlgorithm m_routing_algorithm;
     AdaptiveAlgorithm m_adaptive_algorithm;
     bool not_init,m_adaptive;
-    Matrix weight, dist[7];
+    Matrix weight, dist[8];
     std::vector<int> cong,loc;
+    std::vector<bool> opposite;
     std::mt19937 mt;
 };
 
