@@ -12,6 +12,15 @@ def get_str(inj_rate, routing_algorithm, adaptive_algorithm, traffic):
         --inj-vnet=0 --synthetic={} \
         --sim-cycles=10000 --injectionrate={} \
         --vcs-per-vnet=3 ".format(routing_algorithm,adaptive_algorithm,traffic,inj_rate)
+        
+def get_str1(inj_rate, routing_algorithm, adaptive_algorithm, traffic, dim):
+    return "./build/NULL/gem5.opt \
+        configs/example/garnet_synth_traffic.py \
+        --network=garnet --num-cpus=64 --num-dirs=64 \
+        --topology=Cube --dimension={} --routing-algorithm={} --adaptive-algorithm={}  \
+        --inj-vnet=0 --synthetic={} \
+        --sim-cycles=10000 --injectionrate={} \
+        --vcs-per-vnet=3 ".format(dim,routing_algorithm,adaptive_algorithm,traffic,inj_rate)
        
         
 get_number_float = r'\d+\.\d+'
@@ -253,7 +262,7 @@ for k in range(0, M):
     x = (0.98/(M-1)) * k + 0.02
     inj_rate_list[k] = x
     for i in range(0, N):
-        sys_str = get_str(inj_rate=x, routing_algorithm=_routing_algorithm[i], adaptive_algorithm=_adaptive_algorithm[i], traffic="uniform_random", dim=_dim[i])
+        sys_str = get_str1(inj_rate=x, routing_algorithm=_routing_algorithm[i], adaptive_algorithm=_adaptive_algorithm[i], traffic="uniform_random", dim=_dim[i])
         os.system(sys_str)
         avg_latency[i][k] = get_latency()
 
@@ -275,7 +284,7 @@ for k in range(0, M):
     x = (0.98/(M-1)) * k + 0.02
     inj_rate_list[k] = x
     for i in range(0, N):
-        sys_str = get_str(inj_rate=x, routing_algorithm=_routing_algorithm[i], adaptive_algorithm=_adaptive_algorithm[i], traffic="bit_reverse", dim=_dim[i])
+        sys_str = get_str1(inj_rate=x, routing_algorithm=_routing_algorithm[i], adaptive_algorithm=_adaptive_algorithm[i], traffic="bit_reverse", dim=_dim[i])
         os.system(sys_str)
         avg_latency[i][k] = get_latency()
 
@@ -295,7 +304,7 @@ for k in range(0, M):
     x = (0.98/(M-1)) * k + 0.02
     inj_rate_list[k] = x
     for i in range(0, N):
-        sys_str = get_str(inj_rate=x, routing_algorithm=_routing_algorithm[i], adaptive_algorithm=_adaptive_algorithm[i], traffic="bit_complement", dim=_dim[i])
+        sys_str = get_str1(inj_rate=x, routing_algorithm=_routing_algorithm[i], adaptive_algorithm=_adaptive_algorithm[i], traffic="bit_complement", dim=_dim[i])
         os.system(sys_str)
         avg_latency[i][k] = get_latency()
 
@@ -315,7 +324,7 @@ for k in range(0, M):
     x = (0.98/(M-1)) * k + 0.02
     inj_rate_list[k] = x
     for i in range(0, N):
-        sys_str = get_str(inj_rate=x, routing_algorithm=_routing_algorithm[i], adaptive_algorithm=_adaptive_algorithm[i], traffic="shuffle", dim=_dim[i])
+        sys_str = get_str1(inj_rate=x, routing_algorithm=_routing_algorithm[i], adaptive_algorithm=_adaptive_algorithm[i], traffic="shuffle", dim=_dim[i])
         os.system(sys_str)
         avg_latency[i][k] = get_latency()
 
