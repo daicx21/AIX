@@ -263,7 +263,7 @@ AdaptiveRouter::init(int src)
         {
             PortDirection Inport1="West"+std::to_string(i),Inport2="East"+std::to_string(i);
             int id1 = m_router->ComputeInportDirn2Idx(Inport1), id2 = m_router->ComputeInportDirn2Idx(Inport2);
-            for (int j = 0; j < m_dimension; j++) if (j != i)
+            /*for (int j = 0; j < m_dimension; j++) if (j != i)
             {
                 PortDirection Outport1="West"+std::to_string(j),Outport2="East"+std::to_string(j);
                 int id3=m_router->ComputeOutportDirn2Idx(Outport1),id4=m_router->ComputeOutportDirn2Idx(Outport2);
@@ -271,7 +271,7 @@ AdaptiveRouter::init(int src)
                 if (src[i]>0&&src[j]<m_arys-1) weight[id1][id4]=1,sum[id1]+=1;
                 if (src[i]<m_arys-1&&src[j]>0) weight[id2][id3]=1,sum[id2]+=1;
                 if (src[i]<m_arys-1&&src[j]<m_arys-1) weight[id2][id4]=1,sum[id2]+=1;
-            }
+            }*/
             if (src[i]>0&&src[i]<m_arys-1)
             {
                 weight[id1][m_router->ComputeOutportDirn2Idx(Inport2)]=2;
